@@ -30,31 +30,28 @@ type AccountTitle struct {
 	Name            string           `gorm:"not null" json:"name"`
 	Amount          int64            `gorm:"not null" json:"amount"`
 	Type            uint             `gorm:"not null" json:"type"`
-	Transactions    []Transaction    `gorm:"foreignKey:DebitId,CreditId;references:AccountTitleId,AccountTitleId;constraint:OnDelete:CASCADE;" json:"-"`
-	SubTransactions []SubTransaction `gorm:"foreignKey:DebitId,CreditId;references:AccountTitleId,AccountTitleId;constraint:OnDelete:CASCADE;" json:"-"`
+	SubTransactions []SubTransaction `gorm:"foreignKey:AccountTitleId;references:AccountTitleId;constraint:OnDelete:CASCADE;" json:"-"`
 	CreatedAt       time.Time        `gorm:"index" json:"created_at"`
 	UpdatedAt       time.Time        `json:"updated_at"`
 }
 
 type Transaction struct {
-	TransactionId   uint64           `gorm:"primaryKey;not null;autoIncrement"`
-	BookId          string           `gorm:"primaryKey;not null"`
-	DebitId         uint64           `gorm:"not null"`
-	CreditId        uint64           `gorm:"not null"`
-	Description     string           `gorm:"not null"`
-	Amount          int64            `gorm:"not null"`
-	SubTransactions []SubTransaction `gorm:"foreignKey:TransactionId;references:TransactionId;constraint:OnDelete:CASCADE;"`
-	CreatedAt       time.Time        `gorm:"index"`
-	UpdatedAt       time.Time
+	TransactionId   uint64           `gorm:"primaryKey;not null;autoIncrement" json:"transaction_id"`
+	BookId          string           `gorm:"primaryKey;not null" json:"book_id"`
+	Description     string           `gorm:"not null" json:"description"`
+	SubTransactions []SubTransaction `gorm:"foreignKey:TransactionId;references:TransactionId;constraint:OnDelete:CASCADE;" json:"sub_transactions"`
+	OccuredAt       time.Time        `gorm:"index" json:"occured_at"`
+	CreatedAt       time.Time        `json:"created_at"`
+	UpdatedAt       time.Time        `json:"updated_at"`
 }
 
 type SubTransaction struct {
-	SubTransactionId uint64    `gorm:"primaryKey;not null;autoIncrement"`
-	BookId           string    `gorm:"primaryKey;not null"`
-	TransactionId    uint64    `gorm:"primaryKey;not null"`
-	DebitId          uint64    `gorm:"not null"`
-	CreditId         uint64    `gorm:"not null"`
-	Amount           int64     `gorm:"not null"`
-	CreatedAt        time.Time `gorm:"index"`
-	UpdatedAt        time.Time
+	SubTransactionId uint64    `gorm:"primaryKey;not null;autoIncrement" json:"sub_transaction_id"`
+	BookId           string    `gorm:"primaryKey;not null" json:"-"`
+	TransactionId    uint64    `gorm:"primaryKey;not null;autoIncrement:false" json:"-"`
+	IsDebit          bool      `gorm:"not null" json:"is_debit"`
+	AccountTitleId   uint64    `gorm:"not null" json:"account_title_id"`
+	Amount           int64     `gorm:"not null" json:"amount"`
+	CreatedAt        time.Time `gorm:"index" json:"created_at"`
+	UpdatedAt        time.Time `json:"updated_at"`
 }

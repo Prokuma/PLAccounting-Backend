@@ -29,13 +29,22 @@ func main() {
 	r.POST("/user", endpoint.CreateUser())
 	r.POST("/login", endpoint.Login())
 
-	// Transactions
+	// Books
 	r.POST("/book", endpoint.CreateBook())
 	r.GET("/book/:bid", endpoint.GetBook())
+	r.PATCH("/book/:bid", endpoint.UpdateBook())
 	r.DELETE("/book/:bid", endpoint.DeleteBook())
 	r.POST("/book/:bid/accountTitle", endpoint.CreateAccountTitle())
 	r.GET("/book/:bid/accountTitle/:tid", endpoint.GetAccountTitle())
+	r.PATCH("/book/:bid/accountTitle/:tid", endpoint.UpdateAccountTitle())
 	r.DELETE("/book/:bid/accountTitle/:tid", endpoint.DeleteAccountTitle())
+
+	// Transactions
+	r.GET("/book/:bid/transaction", endpoint.GetTransactions(false))
+	r.POST("/book/:bid/transaction", endpoint.CreateTransaction())
+	r.GET("/book/:bid/transaction/:tid", endpoint.GetTransaction())
+	r.DELETE("/book/:bid/transaction/:tid", endpoint.DeleteTransaction())
+	r.GET("/book/:bid/transaction/page/:pid", endpoint.GetTransactions(true))
 
 	// Execution
 	r.Run()

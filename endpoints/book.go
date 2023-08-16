@@ -1,136 +1,15 @@
 package endpoint
 
 import (
-	"crypto/sha256"
-	"encoding/hex"
-	"errors"
 	"fmt"
 	"net/http"
-	"os"
 	"strconv"
 	"strings"
 
 	"github.com/Prokuma/ProkumaLabAccount-Backend/crud"
 	model "github.com/Prokuma/ProkumaLabAccount-Backend/models"
-	util "github.com/Prokuma/ProkumaLabAccount-Backend/utils"
 	"github.com/gin-gonic/gin"
-	"github.com/golang-jwt/jwt/v5"
 )
-
-var NoAuthorizationError = errors.New("No Authorization")
-
-func Ping() gin.HandlerFunc {
-	return func(c *gin.Context) {
-		c.JSON(http.StatusOK, gin.H{
-			"message": "pong",
-		})
-	}
-}
-
-func CreateUser() gin.HandlerFunc {
-	return func(c *gin.Context) {
-		type CreateUser struct {
-			Email    string `json:"email" binding:"required"`
-			Name     string `json:"name" binding:"required"`
-			Password string `json:"password" binding:"required"`
-		}
-		var createUser CreateUser
-		err := c.BindJSON(&createUser)
-		salt := os.Getenv("HASH_SALT")
-
-		if err != nil {
-			c.String(http.StatusBadRequest, "Request is failed "+err.Error())
-			return
-		}
-
-		r := sha256.Sum256([]byte(createUser.Password + salt))
-		hash := hex.EncodeToString(r[:])
-
-		err = crud.CreateUser(&model.User{
-			Email:    createUser.Email,
-			Name:     createUser.Name,
-			Password: hash,
-		})
-
-		if err != nil {
-			c.String(http.StatusBadRequest, "Request is failed "+err.Error())
-			return
-		}
-
-		c.JSON(http.StatusOK, gin.H{
-			"message": fmt.Sprintf("Created User: %s", createUser.Name),
-		})
-	}
-}
-
-func Login() gin.HandlerFunc {
-	return func(c *gin.Context) {
-		type LoginWithEmailAndPassword struct {
-			Email    string `json:"email" binding:"required"`
-			Password string `json:"password" binding:"required"`
-		}
-		var loginInfo LoginWithEmailAndPassword
-		err := c.BindJSON(&loginInfo)
-		salt := os.Getenv("HASH_SALT")
-
-		if err != nil {
-			c.String(http.StatusBadRequest, "Request is failed "+err.Error())
-			return
-		}
-
-		r := sha256.Sum256([]byte(loginInfo.Password + salt))
-		hash := hex.EncodeToString(r[:])
-
-		user, err := crud.GetUserFromEmail(loginInfo.Email)
-
-		if err != nil {
-			c.String(http.StatusBadRequest, "Request is failed "+err.Error())
-			return
-		}
-
-		if user.Password != hash {
-			c.String(http.StatusForbidden, "Password is not currect")
-			return
-		}
-
-		token, tokenLifeTime, err := util.GenerateToken(user.UserId)
-
-		if err != nil {
-			c.String(http.StatusInternalServerError, "Making Token was failed")
-			return
-		}
-
-		c.SetCookie("token", token, tokenLifeTime*3600, "/", "localhost", false, true)
-		c.JSON(http.StatusOK, gin.H{
-			"message": fmt.Sprintf("Succesed Login: %s", user.Name),
-		})
-	}
-}
-
-func getUserIdFromJWT(c *gin.Context) (model.User, error) {
-	tokenString, err := c.Cookie("token")
-	if err != nil {
-		c.String(http.StatusUnauthorized, "Unauthorized")
-		return model.User{}, err
-	}
-
-	token, err := util.ParseToken(tokenString)
-	if err != nil {
-		c.String(http.StatusUnauthorized, "Invalid Token: "+err.Error())
-		return model.User{}, err
-	}
-
-	claims := token.Claims.(jwt.MapClaims)
-	userId := claims["user_id"].(string)
-	fmt.Println(userId)
-
-	user, err := crud.GetUser(userId)
-	if err != nil {
-		c.String(http.StatusUnauthorized, "User not found")
-		return model.User{}, err
-	}
-	return user, nil
-}
 
 func CreateBook() gin.HandlerFunc {
 	return func(c *gin.Context) {
@@ -166,8 +45,8 @@ func CreateBook() gin.HandlerFunc {
 		}
 
 		c.JSON(http.StatusOK, gin.H{
-			"book_id": book.BookId,
-			"message": "Created Book Successed",
+			"book":    book,
+			"message": "Book was created",
 		})
 	}
 }
@@ -202,6 +81,66 @@ func GetBook() gin.HandlerFunc {
 		c.JSON(http.StatusOK, gin.H{
 			"book":    book,
 			"message": "Created Book Successed",
+		})
+	}
+}
+
+func UpdateBook() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		user, err := getUserIdFromJWT(c)
+		if err != nil {
+			c.Abort()
+			return
+		}
+
+		type UpdateBook struct {
+			Name *string `json:"name"`
+			Year *uint   `json:"year"`
+		}
+		var updateBook UpdateBook
+		err = c.BindJSON(&updateBook)
+
+		if err != nil {
+			c.String(http.StatusBadRequest, "Infection Informations")
+			c.Abort()
+			return
+		}
+
+		book, err := crud.GetBook(c.Param("bid"))
+		if err != nil {
+			c.String(http.StatusUnauthorized, "Book was not found")
+			c.Abort()
+			return
+		}
+
+		bookAuthorization, err := crud.GetBookAuthorization(&user, &book)
+		if err != nil {
+			c.String(http.StatusUnauthorized, NoAuthorizationError.Error())
+			c.Abort()
+			return
+		}
+		if strings.Index(bookAuthorization.Authority, "update") == -1 {
+			c.String(http.StatusUnauthorized, NoAuthorizationError.Error())
+			c.Abort()
+			return
+		}
+
+		if updateBook.Name != nil {
+			book.Name = *updateBook.Name
+		}
+		if updateBook.Year != nil {
+			book.Year = *updateBook.Year
+		}
+		err = crud.UpdateBook(&book)
+		if err != nil {
+			c.String(http.StatusInternalServerError, "Book could not created")
+			c.Abort()
+			return
+		}
+
+		c.JSON(http.StatusOK, gin.H{
+			"book":    book,
+			"message": "Book was created",
 		})
 	}
 }
@@ -243,7 +182,7 @@ func DeleteBook() gin.HandlerFunc {
 		}
 
 		c.JSON(http.StatusOK, gin.H{
-			"message": "The book was deleted",
+			"message": "Book was deleted",
 		})
 	}
 }
@@ -290,13 +229,14 @@ func CreateAccountTitle() gin.HandlerFunc {
 			return
 		}
 
-		err = crud.CreateAccountTitle(&model.AccountTitle{
+		var accountTitle = model.AccountTitle{
 			BookId: book.BookId,
 			Name:   createAccountTitle.Name,
 			Amount: createAccountTitle.Amount,
 			Type:   createAccountTitle.Type,
-		})
+		}
 
+		err = crud.CreateAccountTitle(&accountTitle)
 		if err != nil {
 			c.String(http.StatusInternalServerError, "Create Account Title was failed")
 			c.Abort()
@@ -304,7 +244,8 @@ func CreateAccountTitle() gin.HandlerFunc {
 		}
 
 		c.JSON(http.StatusOK, gin.H{
-			"message": "Account Title was created",
+			"account_title": accountTitle,
+			"message":       "Account Title was created",
 		})
 	}
 }
@@ -353,6 +294,86 @@ func GetAccountTitle() gin.HandlerFunc {
 		c.JSON(http.StatusOK, gin.H{
 			"account_title": accountTitle,
 			"message":       "Account Title was found",
+		})
+	}
+}
+
+func UpdateAccountTitle() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		user, err := getUserIdFromJWT(c)
+		if err != nil {
+			c.Abort()
+			return
+		}
+
+		book, err := crud.GetBook(c.Param("bid"))
+		if err != nil {
+			c.String(http.StatusUnauthorized, "Book was not found")
+			c.Abort()
+			return
+		}
+
+		bookAuthorization, err := crud.GetBookAuthorization(&user, &book)
+		if err != nil {
+			c.String(http.StatusUnauthorized, NoAuthorizationError.Error())
+			c.Abort()
+			return
+		}
+		if strings.Index(bookAuthorization.Authority, "update") == -1 {
+			c.String(http.StatusUnauthorized, NoAuthorizationError.Error())
+			c.Abort()
+			return
+		}
+
+		type UpdateAccountTitle struct {
+			Name   *string `json:"name"`
+			Amount *int64  `json:"amount"`
+			Type   *uint   `json:"type"`
+		}
+		var updateAccountTitle UpdateAccountTitle
+		err = c.BindJSON(&updateAccountTitle)
+
+		if err != nil {
+			fmt.Println(err)
+			c.String(http.StatusBadRequest, "Infection Informations")
+			c.Abort()
+			return
+		}
+
+		tid, err := strconv.ParseUint(c.Param("tid"), 10, 64)
+		if err != nil {
+			c.String(http.StatusBadRequest, "tid could not convert to integer")
+			c.Abort()
+			return
+		}
+
+		accountTitle, err := crud.GetAccountTitle(&book, tid)
+		if err != nil {
+			c.String(http.StatusBadRequest, "Invalid title id")
+			c.Abort()
+			return
+		}
+
+		if updateAccountTitle.Name != nil {
+			accountTitle.Name = *updateAccountTitle.Name
+		}
+		if updateAccountTitle.Amount != nil {
+			accountTitle.Amount = *updateAccountTitle.Amount
+		}
+		if updateAccountTitle.Type != nil {
+			accountTitle.Type = *updateAccountTitle.Type
+		}
+
+		err = crud.UpdateAccountTitle(&accountTitle)
+		if err != nil {
+			c.String(http.StatusNotFound, "The account title could not deleted")
+			c.Abort()
+			return
+		}
+
+		c.JSON(http.StatusOK, gin.H{
+			"account_title": accountTitle,
+			"message":       "Account Title was updated",
 		})
 	}
 }
