@@ -8,9 +8,9 @@ import (
 	"net/http"
 	"os"
 
-	"github.com/Prokuma/ProkumaLabAccount-Backend/crud"
-	model "github.com/Prokuma/ProkumaLabAccount-Backend/models"
-	util "github.com/Prokuma/ProkumaLabAccount-Backend/utils"
+	"github.com/Prokuma/PLAccounting-Backend/crud"
+	model "github.com/Prokuma/PLAccounting-Backend/models"
+	util "github.com/Prokuma/PLAccounting-Backend/utils"
 	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt/v5"
 )

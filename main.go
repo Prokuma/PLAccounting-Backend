@@ -3,8 +3,8 @@ package main
 import (
 	"fmt"
 
-	crud "github.com/Prokuma/ProkumaLabAccount-Backend/crud"
-	endpoint "github.com/Prokuma/ProkumaLabAccount-Backend/endpoints"
+	crud "github.com/Prokuma/PLAccounting-Backend/crud"
+	endpoint "github.com/Prokuma/PLAccounting-Backend/endpoints"
 	"github.com/gin-gonic/gin"
 	"github.com/joho/godotenv"
 )

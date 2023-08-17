@@ -3,7 +3,7 @@ package crud
 import (
 	"fmt"
 
-	model "github.com/Prokuma/ProkumaLabAccount-Backend/models"
+	model "github.com/Prokuma/PLAccounting-Backend/models"
 )
 
 func CreateUser(user *model.User) error {

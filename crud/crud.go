@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"os"
 
-	model "github.com/Prokuma/ProkumaLabAccount-Backend/models"
+	model "github.com/Prokuma/PLAccounting-Backend/models"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 )

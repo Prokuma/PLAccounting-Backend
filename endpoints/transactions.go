@@ -6,8 +6,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Prokuma/ProkumaLabAccount-Backend/crud"
-	model "github.com/Prokuma/ProkumaLabAccount-Backend/models"
+	"github.com/Prokuma/PLAccounting-Backend/crud"
+	model "github.com/Prokuma/PLAccounting-Backend/models"
 	"github.com/gin-gonic/gin"
 )
 
