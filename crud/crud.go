@@ -34,14 +34,22 @@ func InitDB() {
 	db.Exec(`CREATE EXTENSION IF NOT EXISTS "uuid-ossp";`)
 
 	// Migration
-	db.AutoMigrate(&model.SubTransaction{})
-	db.AutoMigrate(&model.Permit{})
-	db.AutoMigrate(&model.BookAuthorization{})
-	db.AutoMigrate(&model.Transaction{})
-	db.AutoMigrate(&model.Application{})
-	db.AutoMigrate(&model.User{})
-	db.AutoMigrate(&model.Book{})
-	db.AutoMigrate(&model.AccountTitle{})
+	db.AutoMigrate(
+		&model.User{}, &model.Application{}, &model.Permit{},
+
+		&model.Book{}, &model.AccountTitle{}, &model.BookAuthorization{},
+		&model.Transaction{}, &model.SubTransaction{},
+	)
+	/*
+		db.AutoMigrate(&model.Permit{})
+		db.AutoMigrate(&model.BookAuthorization{})
+		db.AutoMigrate(&model.Transaction{})
+		db.AutoMigrate(&model.SubTransaction{})
+		db.AutoMigrate(&model.Application{})
+		db.AutoMigrate(&model.User{})
+		db.AutoMigrate(&model.Book{})
+		db.AutoMigrate(&model.AccountTitle{})
+	*/
 
 	if err != nil {
 		panic(err)

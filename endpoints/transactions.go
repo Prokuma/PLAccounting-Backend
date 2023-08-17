@@ -77,6 +77,86 @@ func CreateTransaction() gin.HandlerFunc {
 	}
 }
 
+func UpdateTransaction() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		user, err := getUserIdFromJWT(c)
+		if err != nil {
+			c.Abort()
+			return
+		}
+
+		book, err := crud.GetBook(c.Param("bid"))
+		if err != nil {
+			c.String(http.StatusUnauthorized, "Book was not found")
+			c.Abort()
+			return
+		}
+
+		bookAuthorization, err := crud.GetBookAuthorization(&user, &book)
+		if err != nil {
+			c.String(http.StatusUnauthorized, NoAuthorizationError.Error())
+			c.Abort()
+			return
+		}
+		if strings.Index(bookAuthorization.Authority, "update") == -1 {
+			c.String(http.StatusUnauthorized, NoAuthorizationError.Error())
+			c.Abort()
+			return
+		}
+
+		type UpdateTransaction struct {
+			Description     *string                 `json:"description"`
+			OccuredAt       *time.Time              `json:"occured_at"`
+			SubTransactions *[]model.SubTransaction `json:"sub_transactions"`
+		}
+		var updateTransaction UpdateTransaction
+		err = c.BindJSON(&updateTransaction)
+
+		if err != nil {
+			c.String(http.StatusBadRequest, "Infection Informations")
+			c.Abort()
+			return
+		}
+
+		transactionId, err := strconv.ParseUint(c.Param("tid"), 10, 64)
+		if err != nil {
+			c.String(http.StatusBadRequest, "Transaction ID is invalid")
+			c.Abort()
+			return
+		}
+
+		transaction, err := crud.GetTransaction(&book, transactionId)
+		if err != nil {
+			c.String(http.StatusBadRequest, "Transaction ID is invalid")
+		}
+
+		if updateTransaction.Description != nil {
+			transaction.Description = *updateTransaction.Description
+		}
+		if updateTransaction.OccuredAt != nil {
+			transaction.OccuredAt = *updateTransaction.OccuredAt
+		}
+		if updateTransaction.SubTransactions != nil {
+			for idx := range *updateTransaction.SubTransactions {
+				(*updateTransaction.SubTransactions)[idx].BookId = book.BookId
+			}
+			transaction.SubTransactions = *updateTransaction.SubTransactions
+		}
+
+		err = crud.UpdateTransaction(&transaction)
+		if err != nil {
+			c.String(http.StatusInternalServerError, "Transactiuon could not created")
+			c.Abort()
+			return
+		}
+
+		c.JSON(http.StatusOK, gin.H{
+			"transaction": transaction,
+			"message":     "Transaction was created",
+		})
+	}
+}
+
 func GetTransaction() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		user, err := getUserIdFromJWT(c)

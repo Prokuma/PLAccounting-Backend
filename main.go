@@ -43,6 +43,7 @@ func main() {
 	r.GET("/book/:bid/transaction", endpoint.GetTransactions(false))
 	r.POST("/book/:bid/transaction", endpoint.CreateTransaction())
 	r.GET("/book/:bid/transaction/:tid", endpoint.GetTransaction())
+	r.PATCH("/book/:bid/transaction/:tid", endpoint.UpdateTransaction())
 	r.DELETE("/book/:bid/transaction/:tid", endpoint.DeleteTransaction())
 	r.GET("/book/:bid/transaction/page/:pid", endpoint.GetTransactions(true))
 

@@ -255,6 +255,111 @@ func CreateTransaction(transaction *model.Transaction) error {
 	return nil
 }
 
+func UpdateTransaction(transaction *model.Transaction) error {
+	var prevTransaction model.Transaction
+	tx := DB.Begin()
+	err := tx.Preload("SubTransactions").Where(&model.Transaction{BookId: transaction.BookId, TransactionId: transaction.TransactionId}).First(&prevTransaction).Error
+	if err != nil {
+		tx.Rollback()
+		fmt.Println("Transaction not found: ", err)
+		return err
+	}
+
+	for _, subTransaction := range prevTransaction.SubTransactions {
+		var accountTitle model.AccountTitle
+		err = tx.Where(&model.AccountTitle{AccountTitleId: subTransaction.AccountTitleId}).First(&accountTitle).Error
+		if err != nil {
+			tx.Rollback()
+			fmt.Println("Account title not found: ", err)
+			return err
+		}
+
+		if subTransaction.IsDebit {
+			if accountTitle.Type%2 == 0 {
+				accountTitle.Amount -= subTransaction.Amount
+			} else {
+				accountTitle.Amount += subTransaction.Amount
+			}
+		} else {
+			if accountTitle.Type%2 == 0 {
+				accountTitle.Amount += subTransaction.Amount
+			} else {
+				accountTitle.Amount -= subTransaction.Amount
+			}
+		}
+
+		err = tx.Save(&accountTitle).Error
+		if err != nil {
+			fmt.Println("Account Title Update Error: ", err)
+			tx.Rollback()
+			return err
+		}
+	}
+
+	for _, subTransaction := range transaction.SubTransactions {
+		err = tx.Updates(&subTransaction).Error
+		if err != nil {
+			fmt.Println("Sub Transaction Update Error: ", err)
+			tx.Rollback()
+			return err
+		}
+	}
+
+	var newTransaction model.Transaction
+	err = tx.Preload("SubTransactions").Where(&model.Transaction{BookId: transaction.BookId, TransactionId: transaction.TransactionId}).First(&newTransaction).Error
+	if err != nil {
+		fmt.Println("Get New Transaction Update Error: ", err)
+		tx.Rollback()
+		return err
+	}
+
+	err = tx.Updates(transaction).Error
+	if err != nil {
+		tx.Rollback()
+		fmt.Println("Transaction Update Error: ", err)
+		return err
+	}
+
+	for _, subTransaction := range newTransaction.SubTransactions {
+		var accountTitle model.AccountTitle
+		err = tx.Where(&model.AccountTitle{AccountTitleId: subTransaction.AccountTitleId}).First(&accountTitle).Error
+		if err != nil {
+			tx.Rollback()
+			fmt.Println("Account title not found: ", err)
+			return err
+		}
+
+		if subTransaction.IsDebit {
+			if accountTitle.Type%2 == 0 {
+				accountTitle.Amount += subTransaction.Amount
+			} else {
+				accountTitle.Amount -= subTransaction.Amount
+			}
+		} else {
+			if accountTitle.Type%2 == 0 {
+				accountTitle.Amount -= subTransaction.Amount
+			} else {
+				accountTitle.Amount += subTransaction.Amount
+			}
+		}
+
+		err = tx.Save(&accountTitle).Error
+		if err != nil {
+			fmt.Println("Account Title Update Error: ", err)
+			tx.Rollback()
+			return err
+		}
+	}
+
+	err = tx.Commit().Error
+	if err != nil {
+		fmt.Println("Transaction Commit Error: ", err)
+		return err
+	}
+
+	return nil
+}
+
 func DeleteTransaction(book *model.Book, transactionId uint64) error {
 	var transaction model.Transaction
 
@@ -322,7 +427,7 @@ func DeleteTransaction(book *model.Book, transactionId uint64) error {
 
 func GetTransaction(book *model.Book, transactionId uint64) (model.Transaction, error) {
 	var transaction model.Transaction
-	err := DB.Preload("SubTransactions").Where(&model.Transaction{TransactionId: transactionId, BookId: *&book.BookId}).First(&transaction).Error
+	err := DB.Preload("SubTransactions").Preload("SubTransactions.AccountTitle").Where(&model.Transaction{TransactionId: transactionId, BookId: *&book.BookId}).First(&transaction).Error
 
 	if err != nil {
 		fmt.Println("No Transaction")
@@ -335,10 +440,10 @@ func GetTransaction(book *model.Book, transactionId uint64) (model.Transaction, 
 func GetTransactions(book *model.Book, dataPerPage int, page int) (*[]model.Transaction, error) {
 	var transactions []model.Transaction
 
-	err := DB.Preload("SubTransactions").Where(&model.Transaction{BookId: *&book.BookId}).Offset(dataPerPage * page).Limit(dataPerPage).Find(&transactions).Error
+	err := DB.Preload("SubTransactions").Preload("SubTransactions.AccountTitle").Where(&model.Transaction{BookId: *&book.BookId}).Offset(dataPerPage * page).Limit(dataPerPage).Find(&transactions).Error
 
 	if err != nil {
-		fmt.Println("No Transactions")
+		fmt.Println("No Transactions", err)
 		return nil, err
 	}
 

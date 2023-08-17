@@ -120,7 +120,6 @@ func getUserIdFromJWT(c *gin.Context) (model.User, error) {
 
 	claims := token.Claims.(jwt.MapClaims)
 	userId := claims["user_id"].(string)
-	fmt.Println(userId)
 
 	user, err := crud.GetUser(userId)
 	if err != nil {
