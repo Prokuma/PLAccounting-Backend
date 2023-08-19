@@ -17,92 +17,122 @@ import (
 
 var NoAuthorizationError = errors.New("No Authorization")
 
-func Ping() gin.HandlerFunc {
-	return func(c *gin.Context) {
-		c.JSON(http.StatusOK, gin.H{
-			"message": "pong",
-		})
-	}
+// Ping godoc
+// @Summary Ping
+// @Tags Ping
+// @Description Ping
+// @Accept  json
+// @Produce  json
+// @Success 200 {string} string	"pong"
+// @Router /ping [get]
+func Ping(c *gin.Context) {
+	c.JSON(http.StatusOK, gin.H{
+		"message": "pong",
+	})
 }
 
-func CreateUser() gin.HandlerFunc {
-	return func(c *gin.Context) {
-		type CreateUser struct {
-			Email    string `json:"email" binding:"required"`
-			Name     string `json:"name" binding:"required"`
-			Password string `json:"password" binding:"required"`
-		}
-		var createUser CreateUser
-		err := c.BindJSON(&createUser)
-		salt := os.Getenv("HASH_SALT")
-
-		if err != nil {
-			c.String(http.StatusBadRequest, "Request is failed "+err.Error())
-			return
-		}
-
-		r := sha256.Sum256([]byte(createUser.Password + salt))
-		hash := hex.EncodeToString(r[:])
-
-		err = crud.CreateUser(&model.User{
-			Email:    createUser.Email,
-			Name:     createUser.Name,
-			Password: hash,
-		})
-
-		if err != nil {
-			c.String(http.StatusBadRequest, "Request is failed "+err.Error())
-			return
-		}
-
-		c.JSON(http.StatusOK, gin.H{
-			"message": fmt.Sprintf("Created User: %s", createUser.Name),
-		})
-	}
+type CreateUserRequest struct {
+	Email    string `json:"email" binding:"required"`
+	Name     string `json:"name" binding:"required"`
+	Password string `json:"password" binding:"required"`
 }
 
-func Login() gin.HandlerFunc {
-	return func(c *gin.Context) {
-		type LoginWithEmailAndPassword struct {
-			Email    string `json:"email" binding:"required"`
-			Password string `json:"password" binding:"required"`
-		}
-		var loginInfo LoginWithEmailAndPassword
-		err := c.BindJSON(&loginInfo)
-		salt := os.Getenv("HASH_SALT")
+// CreateUser godoc
+// @Summary Create User
+// @Tags User
+// @Description Create User
+// @Accept  json
+// @Produce  json
+// @Param user body CreateUserRequest true "Create User"
+// @Success 200 {string} string	"Created User"
+// @Failure 400 {string} string	"Request is failed"
+// @Router /user [post]
+func CreateUser(c *gin.Context) {
+	var createUser CreateUserRequest
+	err := c.BindJSON(&createUser)
+	salt := os.Getenv("HASH_SALT")
 
-		if err != nil {
-			c.String(http.StatusBadRequest, "Request is failed "+err.Error())
-			return
-		}
-
-		r := sha256.Sum256([]byte(loginInfo.Password + salt))
-		hash := hex.EncodeToString(r[:])
-
-		user, err := crud.GetUserFromEmail(loginInfo.Email)
-
-		if err != nil {
-			c.String(http.StatusBadRequest, "Request is failed "+err.Error())
-			return
-		}
-
-		if user.Password != hash {
-			c.String(http.StatusForbidden, "Password is not currect")
-			return
-		}
-
-		token, tokenLifeTime, err := util.GenerateToken(user.UserId)
-
-		if err != nil {
-			c.String(http.StatusInternalServerError, "Making Token was failed")
-			return
-		}
-
-		c.SetCookie("token", token, tokenLifeTime*3600, "/", "localhost", false, true)
-		c.JSON(http.StatusOK, gin.H{
-			"message": fmt.Sprintf("Succesed Login: %s", user.Name),
-		})
+	if err != nil {
+		c.String(http.StatusBadRequest, "Request is failed "+err.Error())
+		c.Abort()
+		return
 	}
+
+	r := sha256.Sum256([]byte(createUser.Password + salt))
+	hash := hex.EncodeToString(r[:])
+
+	err = crud.CreateUser(&model.User{
+		Email:    createUser.Email,
+		Name:     createUser.Name,
+		Password: hash,
+	})
+
+	if err != nil {
+		c.String(http.StatusBadRequest, "Request is failed "+err.Error())
+		c.Abort()
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"message": fmt.Sprintf("Created User: %s", createUser.Name),
+	})
+}
+
+type LoginWithEmailAndPassword struct {
+	Email    string `json:"email" binding:"required"`
+	Password string `json:"password" binding:"required"`
+}
+
+// Login godoc
+// @Summary Login
+// @Tags User
+// @Description Login
+// @Accept  json
+// @Produce  json
+// @Param user body LoginWithEmailAndPassword true "Login"
+// @Success 200 {string} string	"Login"
+// @Failure 400 {string} string	"Request is failed"
+// @Router /login [post]
+func Login(c *gin.Context) {
+	var loginInfo LoginWithEmailAndPassword
+	err := c.BindJSON(&loginInfo)
+	salt := os.Getenv("HASH_SALT")
+
+	if err != nil {
+		c.String(http.StatusBadRequest, "Request is failed "+err.Error())
+		c.Abort()
+		return
+	}
+
+	r := sha256.Sum256([]byte(loginInfo.Password + salt))
+	hash := hex.EncodeToString(r[:])
+
+	user, err := crud.GetUserFromEmail(loginInfo.Email)
+
+	if err != nil {
+		c.String(http.StatusBadRequest, "Request is failed "+err.Error())
+		c.Abort()
+		return
+	}
+
+	if user.Password != hash {
+		c.String(http.StatusForbidden, "Password is not currect")
+		c.Abort()
+		return
+	}
+
+	token, tokenLifeTime, err := util.GenerateToken(user.UserId)
+
+	if err != nil {
+		c.String(http.StatusInternalServerError, "Making Token was failed")
+		c.Abort()
+		return
+	}
+
+	c.SetCookie("token", token, tokenLifeTime*3600, "/", "localhost", false, true)
+	c.JSON(http.StatusOK, gin.H{
+		"message": fmt.Sprintf("Succesed Login: %s", user.Name),
+	})
 }
 
 func getUserIdFromJWT(c *gin.Context) (model.User, error) {

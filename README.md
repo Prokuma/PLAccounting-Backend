@@ -60,4 +60,5 @@ go build
 ```
 
 ## API仕様
-後ほど作成する
+Swaggerで作成しているので当該ファイル（`docs/`以下のファイル）参考。
+また、起動後`host:port/swagger/index.html`でもアクセス可
