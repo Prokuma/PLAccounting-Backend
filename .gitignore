@@ -1,2 +1,4 @@
 .DS_Store
 .env
+.jwt_rsa
+.jwt_rsa.*

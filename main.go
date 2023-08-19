@@ -5,6 +5,7 @@ import (
 
 	crud "github.com/Prokuma/PLAccounting-Backend/crud"
 	endpoint "github.com/Prokuma/PLAccounting-Backend/endpoints"
+	util "github.com/Prokuma/PLAccounting-Backend/utils"
 	"github.com/gin-gonic/gin"
 	"github.com/joho/godotenv"
 )
@@ -18,6 +19,7 @@ func main() {
 
 	// DB Initilization
 	crud.InitDB()
+	util.InitRedis()
 
 	// HTTP Endpoints Initilization
 	r := gin.Default()

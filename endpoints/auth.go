@@ -7,12 +7,12 @@ import (
 	"fmt"
 	"net/http"
 	"os"
+	"strconv"
 
 	"github.com/Prokuma/PLAccounting-Backend/crud"
 	model "github.com/Prokuma/PLAccounting-Backend/models"
 	util "github.com/Prokuma/PLAccounting-Backend/utils"
 	"github.com/gin-gonic/gin"
-	"github.com/golang-jwt/jwt/v5"
 )
 
 var NoAuthorizationError = errors.New("No Authorization")
@@ -114,17 +114,38 @@ func getUserIdFromJWT(c *gin.Context) (model.User, error) {
 
 	token, err := util.ParseToken(tokenString)
 	if err != nil {
-		c.String(http.StatusUnauthorized, "Invalid Token: "+err.Error())
+		c.String(http.StatusUnauthorized, "Unauthorized")
 		return model.User{}, err
 	}
 
-	claims := token.Claims.(jwt.MapClaims)
-	userId := claims["user_id"].(string)
+	claims := token.Claims.(*util.TokenClaims)
+	userId := claims.UserId
+	exp := claims.Exp
+
+	ret, err := util.Redis.Get(util.Context, userId).Result()
+	if err != nil {
+		fmt.Println("Error: ", err)
+		c.String(http.StatusUnauthorized, "Unauthorized")
+		return model.User{}, err
+	}
+
+	fmt.Println("ret: ", ret)
+	retInt, err := strconv.ParseInt(ret, 10, 64)
+	if err != nil {
+		fmt.Println("Error: ", err)
+		c.String(http.StatusInternalServerError, "Internal Server Error")
+		return model.User{}, err
+	}
+	if retInt < exp {
+		c.String(http.StatusUnauthorized, "Unauthorized")
+		return model.User{}, NoAuthorizationError
+	}
 
 	user, err := crud.GetUser(userId)
 	if err != nil {
-		c.String(http.StatusUnauthorized, "User not found")
+		c.String(http.StatusUnauthorized, "Unauthorized")
 		return model.User{}, err
 	}
+
 	return user, nil
 }
