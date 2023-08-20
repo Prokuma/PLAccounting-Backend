@@ -2,12 +2,15 @@ package util
 
 import (
 	"context"
+	"crypto/rand"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"os"
 	"strconv"
 	"time"
 
+	model "github.com/Prokuma/PLAccounting-Backend/models"
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/redis/go-redis/v9"
 )
@@ -41,6 +44,30 @@ func InitRedis() {
 	})
 }
 
+func GenerateMailConfirmationToken(user *model.User) (string, error) {
+	const letters = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
+
+	b := make([]byte, 32)
+	if _, err := rand.Read(b); err != nil {
+		return "", err
+	}
+
+	var tokenString string
+	for _, v := range b {
+		tokenString += string(letters[int(v)%len(letters)])
+	}
+
+	jsonBytes, err := json.Marshal(user)
+	if err != nil {
+		return "", err
+	}
+
+	Redis.Set(Context, tokenString, user.Email, time.Hour*1)
+	Redis.Set(Context, user.Email+".info", string(jsonBytes), time.Hour*1)
+
+	return tokenString, nil
+}
+
 func GenerateToken(userId string) (string, int, error) {
 	secretKeyPath := os.Getenv("JWT_PRIVATE_KEY_PATH")
 	tokenLifeTime, err := strconv.Atoi(os.Getenv("JWT_TOKEN_LIFETIME"))
@@ -70,7 +97,7 @@ func GenerateToken(userId string) (string, int, error) {
 		return "", 0, err
 	}
 
-	Redis.Set(Context, userId, strconv.FormatInt(exp, 10), 0)
+	Redis.Set(Context, userId, strconv.FormatInt(exp, 10), time.Hour*time.Duration(tokenLifeTime))
 
 	return tokenString, tokenLifeTime, nil
 }

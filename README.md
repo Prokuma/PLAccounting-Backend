@@ -5,6 +5,7 @@
 - Go 1.21.0
 - PostgreSQL 15.4
 - Redis 7.2.0
+- SMTPサーバ
 
 ## 環境構築
 ### JWT用公開鍵・秘密鍵生成
@@ -34,6 +35,16 @@ REDIS_HOST=localhost
 REDIS_PASSWORD=password
 REDIS_PORT=6379
 REDIS_DB=0
+```
+
+### メール認証用の送信アカウント設定
+無効化するオプションは未実装なので、任意ではなく必須。
+```shell
+SMTP_HOST=host
+SMTP_PORT=465
+SMTP_USER=user
+SMTP_PASS=password
+SMTP_USERADDR=test@test.com
 ```
 
 ### ハッシュソルト設定（任意）

@@ -38,36 +38,36 @@ func main() {
 	docs.SwaggerInfo.Title = "PLAccounting API"
 	v1 := r.Group("/api/v1")
 	{
-		eg := v1.Group("/")
-		{
+		// Server Health
+		v1.GET("/ping", endpoint.Ping)
 
-			// Server Health
-			eg.GET("/ping", endpoint.Ping)
+		// Authentications
+		v1.POST("/user", endpoint.CreateUser)
+		v1.POST("/login", endpoint.Login)
 
-			// Authentications
-			eg.POST("/user", endpoint.CreateUser)
-			eg.POST("/login", endpoint.Login)
+		// Books
+		v1.POST("/book", endpoint.CreateBook)
+		v1.GET("/book/:bid", endpoint.GetBook)
+		v1.PATCH("/book/:bid", endpoint.UpdateBook)
+		v1.DELETE("/book/:bid", endpoint.DeleteBook)
+		v1.POST("/book/:bid/accountTitle", endpoint.CreateAccountTitle)
+		v1.GET("/book/:bid/accountTitle/:tid", endpoint.GetAccountTitle)
+		v1.PATCH("/book/:bid/accountTitle/:tid", endpoint.UpdateAccountTitle)
+		v1.DELETE("/book/:bid/accountTitle/:tid", endpoint.DeleteAccountTitle)
 
-			// Books
-			eg.POST("/book", endpoint.CreateBook)
-			eg.GET("/book/:bid", endpoint.GetBook)
-			eg.PATCH("/book/:bid", endpoint.UpdateBook)
-			eg.DELETE("/book/:bid", endpoint.DeleteBook)
-			eg.POST("/book/:bid/accountTitle", endpoint.CreateAccountTitle)
-			eg.GET("/book/:bid/accountTitle/:tid", endpoint.GetAccountTitle)
-			eg.PATCH("/book/:bid/accountTitle/:tid", endpoint.UpdateAccountTitle)
-			eg.DELETE("/book/:bid/accountTitle/:tid", endpoint.DeleteAccountTitle)
-
-			// Transactions
-			eg.GET("/book/:bid/transaction", endpoint.GetTransactions)
-			eg.POST("/book/:bid/transaction", endpoint.CreateTransaction)
-			eg.GET("/book/:bid/transaction/:tid", endpoint.GetTransaction)
-			eg.PATCH("/book/:bid/transaction/:tid", endpoint.UpdateTransaction)
-			eg.DELETE("/book/:bid/transaction/:tid", endpoint.DeleteTransaction)
-			eg.GET("/book/:bid/transaction/page/:pid", endpoint.GetTransactionsWithPage)
-			eg.GET("/:bid", endpoint.GetBook)
-		}
+		// Transactions
+		v1.GET("/book/:bid/transaction", endpoint.GetTransactions)
+		v1.POST("/book/:bid/transaction", endpoint.CreateTransaction)
+		v1.GET("/book/:bid/transaction/:tid", endpoint.GetTransaction)
+		v1.PATCH("/book/:bid/transaction/:tid", endpoint.UpdateTransaction)
+		v1.DELETE("/book/:bid/transaction/:tid", endpoint.DeleteTransaction)
+		v1.GET("/book/:bid/transaction/page/:pid", endpoint.GetTransactionsWithPage)
+		v1.GET("/:bid", endpoint.GetBook)
 	}
+
+	// 本登録
+	r.GET("/createUser", endpoint.CreateUserAtDatabase)
+	// Swgger
 	r.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerfiles.Handler))
 
 	// Execution

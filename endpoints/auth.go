@@ -3,6 +3,7 @@ package endpoint
 import (
 	"crypto/sha256"
 	"encoding/hex"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"net/http"
@@ -53,7 +54,7 @@ func CreateUser(c *gin.Context) {
 	salt := os.Getenv("HASH_SALT")
 
 	if err != nil {
-		c.String(http.StatusBadRequest, "Request is failed "+err.Error())
+		c.String(http.StatusBadRequest, "Request was failed ")
 		c.Abort()
 		return
 	}
@@ -61,21 +62,75 @@ func CreateUser(c *gin.Context) {
 	r := sha256.Sum256([]byte(createUser.Password + salt))
 	hash := hex.EncodeToString(r[:])
 
-	err = crud.CreateUser(&model.User{
+	userInfo := model.User{
 		Email:    createUser.Email,
 		Name:     createUser.Name,
 		Password: hash,
-	})
+	}
 
+	triedUser, err := crud.GetUserFromEmail(createUser.Email)
+	if err == nil {
+		if triedUser.Email == createUser.Email {
+			c.String(http.StatusBadRequest, "Request was failed ")
+			c.Abort()
+			return
+		}
+	}
+
+	token, err := util.GenerateMailConfirmationToken(&userInfo)
 	if err != nil {
-		c.String(http.StatusBadRequest, "Request is failed "+err.Error())
+		c.String(http.StatusInternalServerError, "Making Token was failed")
+		c.Abort()
+		return
+	}
+
+	err = util.SendRealCreateUserMail(createUser.Email, token)
+	if err != nil {
+		c.String(http.StatusBadRequest, "Request was failed ")
 		c.Abort()
 		return
 	}
 
 	c.JSON(http.StatusOK, gin.H{
-		"message": fmt.Sprintf("Created User: %s", createUser.Name),
+		"message": fmt.Sprintf("Created User Requested: %s", createUser.Name),
 	})
+}
+
+// CreateUserAtDatabase godoc
+// @Summary Create User At Database
+// Note: This endpoint is not for API.
+func CreateUserAtDatabase(c *gin.Context) {
+	tokenQuery := c.Query("token")
+	email, err := util.Redis.Get(util.Context, tokenQuery).Result()
+	if err != nil {
+		c.String(http.StatusBadRequest, "Request was failed ")
+		c.Abort()
+		return
+	}
+
+	tokenInfo, err := util.Redis.Get(util.Context, email+".info").Result()
+	if err != nil {
+		c.String(http.StatusBadRequest, "Request was failed ")
+		c.Abort()
+		return
+	}
+
+	var user model.User
+	err = json.Unmarshal([]byte(tokenInfo), &user)
+	if err != nil {
+		c.String(http.StatusBadRequest, "Request was failed ")
+		c.Abort()
+		return
+	}
+
+	err = crud.CreateUser(&user)
+	if err != nil {
+		c.String(http.StatusInternalServerError, "Create User was failed ")
+		c.Abort()
+		return
+	}
+
+	c.Data(http.StatusOK, "text/html; charset=utf-8", []byte("Created User"))
 }
 
 type LoginWithEmailAndPassword struct {
@@ -99,7 +154,7 @@ func Login(c *gin.Context) {
 	salt := os.Getenv("HASH_SALT")
 
 	if err != nil {
-		c.String(http.StatusBadRequest, "Request is failed "+err.Error())
+		c.String(http.StatusBadRequest, "Request was failed "+err.Error())
 		c.Abort()
 		return
 	}
@@ -110,13 +165,13 @@ func Login(c *gin.Context) {
 	user, err := crud.GetUserFromEmail(loginInfo.Email)
 
 	if err != nil {
-		c.String(http.StatusBadRequest, "Request is failed "+err.Error())
+		c.String(http.StatusBadRequest, "Request was failed "+err.Error())
 		c.Abort()
 		return
 	}
 
 	if user.Password != hash {
-		c.String(http.StatusForbidden, "Password is not currect")
+		c.String(http.StatusForbidden, "Password was not currect")
 		c.Abort()
 		return
 	}
