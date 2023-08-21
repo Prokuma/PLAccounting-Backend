@@ -35,6 +35,35 @@ func main() {
 	// HTTP Endpoints Initilization
 	r := gin.Default()
 
+	// CORS (Not for development)
+	if gin.Mode() == gin.ReleaseMode {
+		r.Use(cors.New(cors.Config{
+			AllowOrigins: []string{
+				"http://localhost:3000",
+				"https://example.com",
+			},
+			AllowMethods: []string{
+				"GET",
+				"POST",
+				"PUT",
+				"PATCH",
+				"DELETE",
+				"HEAD",
+				"OPTIONS",
+			},
+			AllowHeaders: []string{
+				"Access-Control-Allow-Headers",
+				"Access-Control-Allow-Credentials",
+				"Content-Type",
+				"Content-Length",
+				"Accept-Encoding",
+				"Autorization",
+			},
+			AllowCredentials: true,
+			MaxAge:           24 * time.Hour,
+		}))
+	}
+
 	v1 := r.Group("/api/v1")
 	{
 		// Server Health
@@ -76,35 +105,6 @@ func main() {
 	docs.SwaggerInfo.BasePath = "/api/v1"
 	docs.SwaggerInfo.Title = "PLAccounting API"
 	r.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerfiles.Handler))
-
-	// CORS (Not for development)
-	if gin.Mode() == gin.ReleaseMode {
-		r.Use(cors.New(cors.Config{
-			AllowOrigins: []string{
-				"http://localhost:3000",
-				"https://example.com",
-			},
-			AllowMethods: []string{
-				"GET",
-				"POST",
-				"PUT",
-				"PATCH",
-				"DELETE",
-				"HEAD",
-				"OPTIONS",
-			},
-			AllowHeaders: []string{
-				"Access-Control-Allow-Headers",
-				"Access-Control-Allow-Credentials",
-				"Content-Type",
-				"Content-Length",
-				"Accept-Encoding",
-				"Autorization",
-			},
-			AllowCredentials: true,
-			MaxAge:           24 * time.Hour,
-		}))
-	}
 
 	// Execution
 	r.Run()
