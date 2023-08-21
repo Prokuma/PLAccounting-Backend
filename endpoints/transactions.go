@@ -396,3 +396,125 @@ func DeleteTransaction(c *gin.Context) {
 		"message": "Transaction was deleted",
 	})
 }
+
+// GetSubTransactionsFromAccountTitle godoc
+// @Summary Get Sub Transactions from Account Title
+// @Tags Sub Transaction
+// @Description Get Sub Transactions from Account Title
+// @Accept  json
+// @Produce  json
+// @Param bid path string true "Book ID"
+// @Param tid path string true "Account Title ID"
+// @Success 200 {string} string	"Sub Transactions was found"
+// @Failure 400 {string} string	"Request is failed"
+// @Router /book/{bid}/accountTitle/{tid}/transactions [get]
+func GetSubTransactionsFromAccountTitle(c *gin.Context) {
+	user, err := getUserIdFromJWT(c)
+	if err != nil {
+		c.Abort()
+		return
+	}
+
+	book, err := crud.GetBook(c.Param("bid"))
+	if err != nil {
+		c.String(http.StatusUnauthorized, "Book was not found")
+		c.Abort()
+		return
+	}
+
+	bookAuthorization, err := crud.GetBookAuthorization(&user, &book)
+	if err != nil {
+		c.String(http.StatusUnauthorized, NoAuthorizationError.Error())
+		c.Abort()
+		return
+	}
+	if strings.Index(bookAuthorization.Authority, "read") == -1 {
+		c.String(http.StatusUnauthorized, NoAuthorizationError.Error())
+		c.Abort()
+		return
+	}
+
+	accountTitleId, err := strconv.ParseUint(c.Param("tid"), 10, 64)
+	if err != nil {
+		c.String(http.StatusBadRequest, "Account Title ID is invalid")
+		c.Abort()
+		return
+	}
+
+	subTransactions, err := crud.GetSubTransactionsFromAccountTitle(&book, accountTitleId, 20, 0)
+	if err != nil {
+		c.String(http.StatusNotFound, "Sub Transactions could not found")
+		c.Abort()
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"sub_transactions": subTransactions,
+		"message":          "Sub Transactions was found",
+	})
+}
+
+// GetSubTransactionsFromAccountTitleWithPage godoc
+// @Summary Get Sub Transactions from Account Title with Page
+// @Tags Sub Transaction
+// @Description Get Sub Transactions from Account Title with Page
+// @Accept  json
+// @Produce  json
+// @Param bid path string true "Book ID"
+// @Param tid path string true "Account Title ID"
+// @Param pid path string true "Page ID"
+// @Success 200 {string} string	"Sub Transactions was found"
+// @Failure 400 {string} string	"Request is failed"
+// @Router /book/{bid}/accountTitle/{tid}/transactions/{pid} [get]
+func GetSubTransactionsFromAccountTitleWithPage(c *gin.Context) {
+	user, err := getUserIdFromJWT(c)
+	if err != nil {
+		c.Abort()
+		return
+	}
+
+	book, err := crud.GetBook(c.Param("bid"))
+	if err != nil {
+		c.String(http.StatusUnauthorized, "Book was not found")
+		c.Abort()
+		return
+	}
+
+	bookAuthorization, err := crud.GetBookAuthorization(&user, &book)
+	if err != nil {
+		c.String(http.StatusUnauthorized, NoAuthorizationError.Error())
+		c.Abort()
+		return
+	}
+	if strings.Index(bookAuthorization.Authority, "read") == -1 {
+		c.String(http.StatusUnauthorized, NoAuthorizationError.Error())
+		c.Abort()
+		return
+	}
+
+	accountTitleId, err := strconv.ParseUint(c.Param("tid"), 10, 64)
+	if err != nil {
+		c.String(http.StatusBadRequest, "Account Title ID is invalid")
+		c.Abort()
+		return
+	}
+
+	page, err := strconv.Atoi(c.Param("pid"))
+	if err != nil {
+		c.String(http.StatusBadRequest, "Page ID is invalid")
+		c.Abort()
+		return
+	}
+
+	subTransactions, err := crud.GetSubTransactionsFromAccountTitle(&book, accountTitleId, 20, page)
+	if err != nil {
+		c.String(http.StatusNotFound, "Sub Transactions could not found")
+		c.Abort()
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"sub_transactions": subTransactions,
+		"message":          "Sub Transactions was found",
+	})
+}

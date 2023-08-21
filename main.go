@@ -46,10 +46,14 @@ func main() {
 		v1.POST("/login", endpoint.Login)
 
 		// Books
+		v1.GET("/book", endpoint.GetAllBooks)
 		v1.POST("/book", endpoint.CreateBook)
 		v1.GET("/book/:bid", endpoint.GetBook)
 		v1.PATCH("/book/:bid", endpoint.UpdateBook)
 		v1.DELETE("/book/:bid", endpoint.DeleteBook)
+
+		// Account Titles
+		v1.GET("/book/:bid/accountTitle", endpoint.GetAllAccountTitles)
 		v1.POST("/book/:bid/accountTitle", endpoint.CreateAccountTitle)
 		v1.GET("/book/:bid/accountTitle/:tid", endpoint.GetAccountTitle)
 		v1.PATCH("/book/:bid/accountTitle/:tid", endpoint.UpdateAccountTitle)
@@ -62,7 +66,8 @@ func main() {
 		v1.PATCH("/book/:bid/transaction/:tid", endpoint.UpdateTransaction)
 		v1.DELETE("/book/:bid/transaction/:tid", endpoint.DeleteTransaction)
 		v1.GET("/book/:bid/transaction/page/:pid", endpoint.GetTransactionsWithPage)
-		v1.GET("/:bid", endpoint.GetBook)
+		v1.GET("/book/:bid/accountTitle/:tid/transactions", endpoint.GetSubTransactionsFromAccountTitle)
+		v1.GET("/book/:bid/accountTitle/:tid/transactions/:pid", endpoint.GetSubTransactionsFromAccountTitleWithPage)
 	}
 
 	// 本登録

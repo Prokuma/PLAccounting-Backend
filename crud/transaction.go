@@ -71,6 +71,18 @@ func GetBook(bookId string) (model.Book, error) {
 	return book, nil
 }
 
+func GetAllBooks(user *model.User) (*[]model.Book, error) {
+	var books []model.Book
+	err := DB.Model(&model.BookAuthorization{UserId: user.UserId}).Select("books.*").Joins("LEFT JOIN books ON book_authorizations.book_id = books.book_id").Find(&books).Error
+
+	if err != nil {
+		fmt.Println("Books could not found: ", err)
+		return nil, err
+	}
+
+	return &books, nil
+}
+
 func CreateAccountTitle(title *model.AccountTitle) error {
 	err := DB.Create(title).Error
 
@@ -91,6 +103,32 @@ func GetAccountTitle(book *model.Book, accountTitleId uint64) (model.AccountTitl
 	}
 
 	return accountTitle, nil
+}
+
+func GetAllAccountTitles(book *model.Book) (*[]model.AccountTitle, error) {
+	var accountTitles []model.AccountTitle
+
+	err := DB.Where(&model.AccountTitle{BookId: *&book.BookId}).Find(&accountTitles).Error
+
+	if err != nil {
+		fmt.Println("No Account Titles", err)
+		return nil, err
+	}
+
+	return &accountTitles, nil
+}
+
+func GetAccountTitles(book *model.Book, dataPerPage int, page int) (*[]model.AccountTitle, error) {
+	var accountTitles []model.AccountTitle
+
+	err := DB.Where(&model.AccountTitle{BookId: *&book.BookId}).Offset(dataPerPage * page).Limit(dataPerPage).Find(&accountTitles).Error
+
+	if err != nil {
+		fmt.Println("No Account Titles", err)
+		return nil, err
+	}
+
+	return &accountTitles, nil
 }
 
 func DeleteAccountTitle(book *model.Book, accountTitleId uint64) error {
@@ -181,10 +219,11 @@ func CreateBookAndAccountTitleFromBook(year uint, name string, admin *model.User
 	tx.Where(&model.AccountTitle{BookId: *&oldBook.BookId}).Find(&oldAccountTtiles)
 	for _, accountTitle := range oldAccountTtiles {
 		newAccountTitles = append(newAccountTitles, model.AccountTitle{
-			BookId: newBook.BookId,
-			Name:   accountTitle.Name,
-			Amount: accountTitle.Amount, // 繰越
-			Type:   accountTitle.Type,
+			BookId:     newBook.BookId,
+			Name:       accountTitle.Name,
+			Amount:     accountTitle.Amount, // 繰越
+			AmountBase: accountTitle.Amount, // 繰越
+			Type:       accountTitle.Type,
 		})
 	}
 	err = tx.Create(&newAccountTitles).Error
@@ -448,4 +487,17 @@ func GetTransactions(book *model.Book, dataPerPage int, page int) (*[]model.Tran
 	}
 
 	return &transactions, nil
+}
+
+func GetSubTransactionsFromAccountTitle(book *model.Book, accountTitleId uint64, dataPerPage int, page int) (*[]model.SubTransaction, error) {
+	var subTransactions []model.SubTransaction
+
+	err := DB.Preload("AccountTitle").Where(&model.SubTransaction{BookId: *&book.BookId, AccountTitleId: accountTitleId}).Offset(dataPerPage * page).Limit(dataPerPage).Find(&subTransactions).Error
+
+	if err != nil {
+		fmt.Println("No Sub Transactions", err)
+		return nil, err
+	}
+
+	return &subTransactions, nil
 }

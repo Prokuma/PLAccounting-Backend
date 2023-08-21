@@ -17,6 +17,33 @@ const docTemplate = `{
     "basePath": "{{.BasePath}}",
     "paths": {
         "/book": {
+            "get": {
+                "description": "Get All Books",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Book"
+                ],
+                "summary": "Get All Books",
+                "responses": {
+                    "200": {
+                        "description": "Get All Books",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "400": {
+                        "description": "Request is failed",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            },
             "post": {
                 "description": "Create Book",
                 "consumes": [
@@ -176,6 +203,42 @@ const docTemplate = `{
             }
         },
         "/book/{bid}/accountTitle": {
+            "get": {
+                "description": "Get All Account Titles",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Account Title"
+                ],
+                "summary": "Get All Account Titles",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Book ID",
+                        "name": "bid",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Get All Account Titles",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "400": {
+                        "description": "Request is failed",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            },
             "post": {
                 "description": "Create Account Title",
                 "consumes": [
@@ -349,6 +412,103 @@ const docTemplate = `{
                 "responses": {
                     "200": {
                         "description": "Update Account Title",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "400": {
+                        "description": "Request is failed",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "/book/{bid}/accountTitle/{tid}/transactions": {
+            "get": {
+                "description": "Get Sub Transactions from Account Title",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Sub Transaction"
+                ],
+                "summary": "Get Sub Transactions from Account Title",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Book ID",
+                        "name": "bid",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Account Title ID",
+                        "name": "tid",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Sub Transactions was found",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "400": {
+                        "description": "Request is failed",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "/book/{bid}/accountTitle/{tid}/transactions/{pid}": {
+            "get": {
+                "description": "Get Sub Transactions from Account Title with Page",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Sub Transaction"
+                ],
+                "summary": "Get Sub Transactions from Account Title with Page",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Book ID",
+                        "name": "bid",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Account Title ID",
+                        "name": "tid",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Page ID",
+                        "name": "pid",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Sub Transactions was found",
                         "schema": {
                             "type": "string"
                         }
@@ -869,6 +1029,9 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "amount": {
+                    "type": "integer"
+                },
+                "amount_base": {
                     "type": "integer"
                 },
                 "book_id": {

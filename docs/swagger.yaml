@@ -89,6 +89,8 @@ definitions:
     properties:
       amount:
         type: integer
+      amount_base:
+        type: integer
       book_id:
         type: string
       created_at:
@@ -130,6 +132,24 @@ info:
   version: v1
 paths:
   /book:
+    get:
+      consumes:
+      - application/json
+      description: Get All Books
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Get All Books
+          schema:
+            type: string
+        "400":
+          description: Request is failed
+          schema:
+            type: string
+      summary: Get All Books
+      tags:
+      - Book
     post:
       consumes:
       - application/json
@@ -235,6 +255,30 @@ paths:
       tags:
       - Book
   /book/{bid}/accountTitle:
+    get:
+      consumes:
+      - application/json
+      description: Get All Account Titles
+      parameters:
+      - description: Book ID
+        in: path
+        name: bid
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Get All Account Titles
+          schema:
+            type: string
+        "400":
+          description: Request is failed
+          schema:
+            type: string
+      summary: Get All Account Titles
+      tags:
+      - Account Title
     post:
       consumes:
       - application/json
@@ -359,6 +403,71 @@ paths:
       summary: Update Account Title
       tags:
       - Account Title
+  /book/{bid}/accountTitle/{tid}/transactions:
+    get:
+      consumes:
+      - application/json
+      description: Get Sub Transactions from Account Title
+      parameters:
+      - description: Book ID
+        in: path
+        name: bid
+        required: true
+        type: string
+      - description: Account Title ID
+        in: path
+        name: tid
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Sub Transactions was found
+          schema:
+            type: string
+        "400":
+          description: Request is failed
+          schema:
+            type: string
+      summary: Get Sub Transactions from Account Title
+      tags:
+      - Sub Transaction
+  /book/{bid}/accountTitle/{tid}/transactions/{pid}:
+    get:
+      consumes:
+      - application/json
+      description: Get Sub Transactions from Account Title with Page
+      parameters:
+      - description: Book ID
+        in: path
+        name: bid
+        required: true
+        type: string
+      - description: Account Title ID
+        in: path
+        name: tid
+        required: true
+        type: string
+      - description: Page ID
+        in: path
+        name: pid
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Sub Transactions was found
+          schema:
+            type: string
+        "400":
+          description: Request is failed
+          schema:
+            type: string
+      summary: Get Sub Transactions from Account Title with Page
+      tags:
+      - Sub Transaction
   /book/{bid}/transaction:
     get:
       consumes:

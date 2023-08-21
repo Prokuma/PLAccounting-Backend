@@ -18,7 +18,9 @@ type Book struct {
 
 type BookAuthorization struct {
 	BookId    string    `gorm:"primaryKey;not null"`
+	Book      *Book     `gorm:"foreignKey:BookId" json:"account_title"`
 	UserId    string    `gorm:"primaryKey;not null"`
+	User      *User     `gorm:"foreignKey:UserId" json:"user"`
 	Authority string    `gorm:"not null"`
 	CreatedAt time.Time `gorm:"index"`
 	UpdatedAt time.Time
@@ -29,6 +31,7 @@ type AccountTitle struct {
 	BookId          string           `gorm:"primaryKey;not null" json:"book_id"`
 	Name            string           `gorm:"not null" json:"name"`
 	Amount          int64            `gorm:"not null" json:"amount"`
+	AmountBase      int64            `gorm:"not null;default:0" json:"amount_base"`
 	SubTransactions []SubTransaction `gorm:"foreignKey:AccountTitleId,BookId;references:AccountTitleId,BookId;constraint:OnDelete:CASCADE;" json:"sub_transactions"`
 	Type            uint             `gorm:"not null" json:"type"`
 	CreatedAt       time.Time        `gorm:"index" json:"created_at"`

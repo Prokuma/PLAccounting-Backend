@@ -97,7 +97,37 @@ func GetBook(c *gin.Context) {
 
 	c.JSON(http.StatusOK, gin.H{
 		"book":    book,
-		"message": "Created Book Successed",
+		"message": "Get Book Successed",
+	})
+}
+
+// GetAllBooks godoc
+// @Summary Get All Books
+// @Tags Book
+// @Description Get All Books
+// @Accept  json
+// @Produce  json
+// @Success 200 {string} string	"Get All Books"
+// @Failure 400 {string} string	"Request is failed"
+// @Router /book [get]
+func GetAllBooks(c *gin.Context) {
+	user, err := getUserIdFromJWT(c)
+	if err != nil {
+		c.String(http.StatusUnauthorized, "User was not found")
+		c.Abort()
+		return
+	}
+
+	books, err := crud.GetAllBooks(&user)
+	if err != nil {
+		c.String(http.StatusNotFound, "No Book")
+		c.Abort()
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"books":   books,
+		"message": "Books was found",
 	})
 }
 
@@ -347,6 +377,55 @@ func GetAccountTitle(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{
 		"account_title": accountTitle,
 		"message":       "Account Title was found",
+	})
+}
+
+// GetAllAccountTitles godoc
+// @Summary Get All Account Titles
+// @Tags Account Title
+// @Description Get All Account Titles
+// @Accept  json
+// @Produce  json
+// @Param bid path string true "Book ID"
+// @Success 200 {string} string	"Get All Account Titles"
+// @Failure 400 {string} string	"Request is failed"
+// @Router /book/{bid}/accountTitle [get]
+func GetAllAccountTitles(c *gin.Context) {
+	user, err := getUserIdFromJWT(c)
+	if err != nil {
+		c.Abort()
+		return
+	}
+
+	book, err := crud.GetBook(c.Param("bid"))
+	if err != nil {
+		c.String(http.StatusUnauthorized, "Book was not found")
+		c.Abort()
+		return
+	}
+
+	bookAuthorization, err := crud.GetBookAuthorization(&user, &book)
+	if err != nil {
+		c.String(http.StatusUnauthorized, NoAuthorizationError.Error())
+		c.Abort()
+		return
+	}
+	if strings.Index(bookAuthorization.Authority, "read") == -1 {
+		c.String(http.StatusUnauthorized, NoAuthorizationError.Error())
+		c.Abort()
+		return
+	}
+
+	accountTitles, err := crud.GetAllAccountTitles(&book)
+	if err != nil {
+		c.String(http.StatusNotFound, "No Account Title")
+		c.Abort()
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"account_titles": accountTitles,
+		"message":        "Account Titles was found",
 	})
 }
 
