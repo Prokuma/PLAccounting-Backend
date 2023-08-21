@@ -2,8 +2,10 @@ package main
 
 import (
 	"fmt"
+	"time"
 
 	docs "github.com/Prokuma/PLAccounting-Backend/docs"
+	"github.com/gin-contrib/cors"
 
 	crud "github.com/Prokuma/PLAccounting-Backend/crud"
 	endpoint "github.com/Prokuma/PLAccounting-Backend/endpoints"
@@ -33,9 +35,6 @@ func main() {
 	// HTTP Endpoints Initilization
 	r := gin.Default()
 
-	// Swagger
-	docs.SwaggerInfo.BasePath = "/api/v1"
-	docs.SwaggerInfo.Title = "PLAccounting API"
 	v1 := r.Group("/api/v1")
 	{
 		// Server Health
@@ -72,8 +71,40 @@ func main() {
 
 	// 本登録
 	r.GET("/createUser", endpoint.CreateUserAtDatabase)
+
 	// Swgger
+	docs.SwaggerInfo.BasePath = "/api/v1"
+	docs.SwaggerInfo.Title = "PLAccounting API"
 	r.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerfiles.Handler))
+
+	// CORS (Not for development)
+	if gin.Mode() == gin.ReleaseMode {
+		r.Use(cors.New(cors.Config{
+			AllowOrigins: []string{
+				"http://localhost:3000",
+				"https://example.com",
+			},
+			AllowMethods: []string{
+				"GET",
+				"POST",
+				"PUT",
+				"PATCH",
+				"DELETE",
+				"HEAD",
+				"OPTIONS",
+			},
+			AllowHeaders: []string{
+				"Access-Control-Allow-Headers",
+				"Access-Control-Allow-Credentials",
+				"Content-Type",
+				"Content-Length",
+				"Accept-Encoding",
+				"Autorization",
+			},
+			AllowCredentials: true,
+			MaxAge:           24 * time.Hour,
+		}))
+	}
 
 	// Execution
 	r.Run()
