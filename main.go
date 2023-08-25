@@ -35,12 +35,40 @@ func main() {
 	// HTTP Endpoints Initilization
 	r := gin.Default()
 
-	// CORS (Not for development)
+	// CORS
+	// In the Release Mode
 	if gin.Mode() == gin.ReleaseMode {
 		r.Use(cors.New(cors.Config{
 			AllowOrigins: []string{
 				"http://localhost:3000",
 				"https://example.com",
+			},
+			AllowMethods: []string{
+				"GET",
+				"POST",
+				"PUT",
+				"PATCH",
+				"DELETE",
+				"HEAD",
+				"OPTIONS",
+			},
+			AllowHeaders: []string{
+				"Access-Control-Allow-Headers",
+				"Access-Control-Allow-Credentials",
+				"Content-Type",
+				"Content-Length",
+				"Accept-Encoding",
+				"Autorization",
+			},
+			AllowCredentials: true,
+			MaxAge:           24 * time.Hour,
+		}))
+		// In the Debug Mode
+	} else {
+		r.Use(cors.New(cors.Config{
+			AllowOrigins: []string{
+				"http://localhost:5173",
+				"http://127.0.0.1:5173",
 			},
 			AllowMethods: []string{
 				"GET",
@@ -70,8 +98,10 @@ func main() {
 		v1.GET("/ping", endpoint.Ping)
 
 		// Authentications
+		v1.GET("/user", endpoint.GetUser)
 		v1.POST("/user", endpoint.CreateUser)
 		v1.POST("/login", endpoint.Login)
+		v1.GET("/logout", endpoint.Logout)
 
 		// Books
 		v1.GET("/book", endpoint.GetAllBooks)

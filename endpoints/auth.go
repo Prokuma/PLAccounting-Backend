@@ -184,9 +184,62 @@ func Login(c *gin.Context) {
 		return
 	}
 
-	c.SetCookie("token", token, tokenLifeTime*3600, "/", "localhost", false, true)
+	c.SetCookie("token", token, tokenLifeTime*3600, "/", os.Getenv("HOST"), false, true)
 	c.JSON(http.StatusOK, gin.H{
+		"status":  200,
+		"email":   user.Email,
+		"name":    user.Name,
+		"expire":  tokenLifeTime * 3600,
 		"message": fmt.Sprintf("Succesed Login: %s", user.Name),
+	})
+}
+
+// GetUser godoc
+// @Summary Get User
+// @Tags User
+// @Description Get User
+// @Accept  json
+// @Produce  json
+// @Success 200 {string} string	"Get User"
+// @Failure 400 {string} string	"Request is failed"
+// @Router /user [get]
+func GetUser(c *gin.Context) {
+	user, err := getUserIdFromJWT(c)
+	if err != nil {
+		c.String(http.StatusUnauthorized, "Unauthorized")
+		c.Abort()
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"status": 200,
+		"email":  user.Email,
+		"name":   user.Name,
+	})
+}
+
+// Logout godoc
+// @Summary Logout
+// @Tags User
+// @Description Logout
+// @Accept  json
+// @Produce  json
+// @Success 200 {string} string	"Logout"
+// @Failure 400 {string} string	"Request is failed"
+// @Router /logout [get]
+func Logout(c *gin.Context) {
+	user, err := getUserIdFromJWT(c)
+	if err != nil {
+		c.String(http.StatusUnauthorized, "Not Logged In")
+		c.Abort()
+		return
+	}
+
+	util.Redis.Del(util.Context, user.UserId)
+	c.SetCookie("token", "", 0, "/", os.Getenv("HOST"), false, true)
+	c.JSON(http.StatusOK, gin.H{
+		"status":  200,
+		"message": "Succesed Logout",
 	})
 }
 

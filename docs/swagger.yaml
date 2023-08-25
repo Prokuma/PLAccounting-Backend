@@ -673,6 +673,25 @@ paths:
       summary: Login
       tags:
       - User
+  /logout:
+    get:
+      consumes:
+      - application/json
+      description: Logout
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Logout
+          schema:
+            type: string
+        "400":
+          description: Request is failed
+          schema:
+            type: string
+      summary: Logout
+      tags:
+      - User
   /ping:
     get:
       consumes:
@@ -689,6 +708,24 @@ paths:
       tags:
       - Ping
   /user:
+    get:
+      consumes:
+      - application/json
+      description: Get User
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Get User
+          schema:
+            type: string
+        "400":
+          description: Request is failed
+          schema:
+            type: string
+      summary: Get User
+      tags:
+      - User
     post:
       consumes:
       - application/json

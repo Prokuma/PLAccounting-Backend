@@ -108,7 +108,7 @@ func GetAccountTitle(book *model.Book, accountTitleId uint64) (model.AccountTitl
 func GetAllAccountTitles(book *model.Book) (*[]model.AccountTitle, error) {
 	var accountTitles []model.AccountTitle
 
-	err := DB.Where(&model.AccountTitle{BookId: *&book.BookId}).Find(&accountTitles).Error
+	err := DB.Where(&model.AccountTitle{BookId: *&book.BookId}).Order("account_title_id DESC").Find(&accountTitles).Error
 
 	if err != nil {
 		fmt.Println("No Account Titles", err)
@@ -121,7 +121,7 @@ func GetAllAccountTitles(book *model.Book) (*[]model.AccountTitle, error) {
 func GetAccountTitles(book *model.Book, dataPerPage int, page int) (*[]model.AccountTitle, error) {
 	var accountTitles []model.AccountTitle
 
-	err := DB.Where(&model.AccountTitle{BookId: *&book.BookId}).Offset(dataPerPage * page).Limit(dataPerPage).Find(&accountTitles).Error
+	err := DB.Where(&model.AccountTitle{BookId: *&book.BookId}).Order("account_title_id DESC").Limit(dataPerPage).Offset(dataPerPage * page).Find(&accountTitles).Error
 
 	if err != nil {
 		fmt.Println("No Account Titles", err)

@@ -72,13 +72,14 @@ func CreateBook(c *gin.Context) {
 func GetBook(c *gin.Context) {
 	user, err := getUserIdFromJWT(c)
 	if err != nil {
+		c.String(http.StatusUnauthorized, "User was not found")
 		c.Abort()
 		return
 	}
 
 	book, err := crud.GetBook(c.Param("bid"))
 	if err != nil {
-		c.String(http.StatusUnauthorized, "Book was not found")
+		c.String(http.StatusNotFound, "Book was not found")
 		c.Abort()
 		return
 	}
