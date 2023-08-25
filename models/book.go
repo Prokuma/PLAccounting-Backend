@@ -43,7 +43,7 @@ type Transaction struct {
 	BookId          string           `gorm:"primaryKey;not null" json:"book_id"`
 	Description     string           `gorm:"not null" json:"description"`
 	SubTransactions []SubTransaction `gorm:"foreignKey:TransactionId,BookId;references:TransactionId,BookId;constraint:OnDelete:CASCADE;" json:"sub_transactions"`
-	OccuredAt       time.Time        `gorm:"index" json:"occured_at"`
+	OccuredAt       time.Time        `gorm:"index" json:"occurred_at"`
 	CreatedAt       time.Time        `json:"created_at"`
 	UpdatedAt       time.Time        `json:"updated_at"`
 }
