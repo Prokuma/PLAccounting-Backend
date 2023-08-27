@@ -52,6 +52,7 @@ type SubTransaction struct {
 	SubTransactionId uint64        `gorm:"primaryKey;not null;autoIncrement" json:"sub_transaction_id"`
 	BookId           string        `gorm:"primaryKey;not null" json:"-"`
 	TransactionId    uint64        `gorm:"primaryKey;not null" json:"-"`
+	Transaction      *Transaction  `gorm:"foreignKey:TransactionId,BookId" json:"transaction"`
 	IsDebit          bool          `gorm:"not null" json:"is_debit"`
 	AccountTitleId   uint64        `gorm:"not null" json:"account_title_id"`
 	AccountTitle     *AccountTitle `gorm:"foreignKey:AccountTitleId,BookId" json:"account_title"`

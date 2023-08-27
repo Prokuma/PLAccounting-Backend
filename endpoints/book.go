@@ -84,6 +84,8 @@ func GetBook(c *gin.Context) {
 		return
 	}
 
+	pages := crud.GetBookPages(book.BookId, 20)
+
 	bookAuthorization, err := crud.GetBookAuthorization(&user, &book)
 	if err != nil {
 		c.String(http.StatusUnauthorized, NoAuthorizationError.Error())
@@ -98,6 +100,7 @@ func GetBook(c *gin.Context) {
 
 	c.JSON(http.StatusOK, gin.H{
 		"book":    book,
+		"pages":   pages,
 		"message": "Get Book Successed",
 	})
 }

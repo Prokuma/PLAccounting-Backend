@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	model "github.com/Prokuma/PLAccounting-Backend/models"
+	"gorm.io/gorm"
 )
 
 func CreateBook(user *model.User, book *model.Book) error {
@@ -69,6 +70,21 @@ func GetBook(bookId string) (model.Book, error) {
 	}
 
 	return book, nil
+}
+
+func GetBookPages(bookId string, dataPerPages int) int64 {
+	var count int64
+	err := DB.Model(&model.Transaction{}).Where(&model.Transaction{BookId: bookId}).Count(&count).Error
+
+	if err != nil {
+		fmt.Println("Book could not found: ", err)
+		return 1
+	}
+
+	if (count % int64(dataPerPages)) == 1 {
+		return count/int64(dataPerPages) + 1
+	}
+	return count / int64(dataPerPages)
 }
 
 func GetAllBooks(user *model.User) (*[]model.Book, error) {
@@ -479,7 +495,8 @@ func GetTransaction(book *model.Book, transactionId uint64) (model.Transaction, 
 func GetTransactions(book *model.Book, dataPerPage int, page int) (*[]model.Transaction, error) {
 	var transactions []model.Transaction
 
-	err := DB.Preload("SubTransactions").Preload("SubTransactions.AccountTitle").Where(&model.Transaction{BookId: *&book.BookId}).Offset(dataPerPage * page).Limit(dataPerPage).Find(&transactions).Error
+	q := DB.Preload("SubTransactions", func(db *gorm.DB) *gorm.DB { return db.Order("sub_transactions.is_debit DESC") }).Preload("SubTransactions.AccountTitle").Where(&model.Transaction{BookId: *&book.BookId}).Order("occured_at DESC").Order("transaction_id DESC")
+	err := q.Offset(dataPerPage * page).Limit(dataPerPage).Find(&transactions).Error
 
 	if err != nil {
 		fmt.Println("No Transactions", err)
@@ -492,7 +509,7 @@ func GetTransactions(book *model.Book, dataPerPage int, page int) (*[]model.Tran
 func GetSubTransactionsFromAccountTitle(book *model.Book, accountTitleId uint64, dataPerPage int, page int) (*[]model.SubTransaction, error) {
 	var subTransactions []model.SubTransaction
 
-	err := DB.Preload("AccountTitle").Where(&model.SubTransaction{BookId: *&book.BookId, AccountTitleId: accountTitleId}).Offset(dataPerPage * page).Limit(dataPerPage).Find(&subTransactions).Error
+	err := DB.Preload("AccountTitle").Preload("Transaction", func(db *gorm.DB) *gorm.DB { return db.Order("transactions.occured_at DESC") }).Where(&model.SubTransaction{BookId: *&book.BookId, AccountTitleId: accountTitleId}).Offset(dataPerPage * page).Limit(dataPerPage).Find(&subTransactions).Error
 
 	if err != nil {
 		fmt.Println("No Sub Transactions", err)
