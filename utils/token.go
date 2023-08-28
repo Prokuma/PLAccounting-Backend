@@ -97,7 +97,7 @@ func GenerateToken(userId string) (string, int, error) {
 		return "", 0, err
 	}
 
-	Redis.Set(Context, userId, strconv.FormatInt(exp, 10), time.Hour*time.Duration(tokenLifeTime))
+	Redis.Set(Context, tokenString, strconv.FormatInt(exp, 10), time.Hour*time.Duration(tokenLifeTime))
 
 	return tokenString, tokenLifeTime, nil
 }

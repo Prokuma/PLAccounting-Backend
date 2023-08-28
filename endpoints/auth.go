@@ -260,14 +260,13 @@ func getUserIdFromJWT(c *gin.Context) (model.User, error) {
 	userId := claims.UserId
 	exp := claims.Exp
 
-	ret, err := util.Redis.Get(util.Context, userId).Result()
+	ret, err := util.Redis.Get(util.Context, tokenString).Result()
 	if err != nil {
 		fmt.Println("Error: ", err)
 		c.String(http.StatusUnauthorized, "Unauthorized")
 		return model.User{}, err
 	}
 
-	fmt.Println("ret: ", ret)
 	retInt, err := strconv.ParseInt(ret, 10, 64)
 	if err != nil {
 		fmt.Println("Error: ", err)
