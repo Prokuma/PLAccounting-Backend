@@ -1137,6 +1137,38 @@ const docTemplate = `{
                 "sub_transaction_id": {
                     "type": "integer"
                 },
+                "transaction": {
+                    "$ref": "#/definitions/model.Transaction"
+                },
+                "updated_at": {
+                    "type": "string"
+                }
+            }
+        },
+        "model.Transaction": {
+            "type": "object",
+            "properties": {
+                "book_id": {
+                    "type": "string"
+                },
+                "created_at": {
+                    "type": "string"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "occurred_at": {
+                    "type": "string"
+                },
+                "sub_transactions": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/model.SubTransaction"
+                    }
+                },
+                "transaction_id": {
+                    "type": "integer"
+                },
                 "updated_at": {
                     "type": "string"
                 }

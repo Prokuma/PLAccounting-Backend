@@ -1,4 +1,9 @@
 .DS_Store
 .env
+.env.*
 .jwt_rsa
 .jwt_rsa.*
+jwt_keys/
+html/
+postgres/
+redis/

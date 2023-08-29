@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"os"
 	"time"
 
 	docs "github.com/Prokuma/PLAccounting-Backend/docs"
@@ -36,12 +37,10 @@ func main() {
 	r := gin.Default()
 
 	// CORS
-	// In the Release Mode
-	if gin.Mode() == gin.ReleaseMode {
+	if gin.Mode() == gin.ReleaseMode { // In the Release Mode
 		r.Use(cors.New(cors.Config{
 			AllowOrigins: []string{
-				"http://localhost:3000",
-				"https://example.com",
+				os.Getenv("FRONTEND_ADDR"),
 			},
 			AllowMethods: []string{
 				"GET",
@@ -63,12 +62,13 @@ func main() {
 			AllowCredentials: true,
 			MaxAge:           24 * time.Hour,
 		}))
-		// In the Debug Mode
-	} else {
+	} else { // In the Debug Mode
 		r.Use(cors.New(cors.Config{
 			AllowOrigins: []string{
 				"http://localhost:5173",
 				"http://127.0.0.1:5173",
+				"http://localhost:4173",
+				"http://127.0.0.1:4173",
 			},
 			AllowMethods: []string{
 				"GET",
@@ -137,5 +137,5 @@ func main() {
 	r.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerfiles.Handler))
 
 	// Execution
-	r.Run()
+	r.Run(":" + os.Getenv("PORT"))
 }

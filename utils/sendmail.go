@@ -15,16 +15,14 @@ func SendRealCreateUserMail(to string, token string) error {
 	pass := os.Getenv("SMTP_PASS")
 	host := os.Getenv("SMTP_HOST")
 	port := os.Getenv("SMTP_PORT")
-
-	serverHost := os.Getenv("HOST")
-	serverPort := os.Getenv("PORT")
+	apiAddr := os.Getenv("PUBLIC_API_ADDR")
 
 	msg := "From: " + from + "\r\n" +
 		"To: " + to + "\r\n" +
 		"Message-ID: " + "<" + uuid.New().String() + "@" + host + ">\r\n" +
-		"Subject: PLAccounting - Create User\r\n\r\n" +
-		"Please access this URL to create your account.\n" +
-		"http://" + serverHost + ":" + serverPort + "/createUser?token=" + token
+		"Subject: PLAccounting - メールアドレス確認\r\n\r\n" +
+		"本登録を完了するには、下記URLにてメールアドレス確認を行なってください。\n" +
+		apiAddr + "/createUser?token=" + token
 
 	fmt.Println("Will send message to ", to)
 

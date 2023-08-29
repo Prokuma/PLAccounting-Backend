@@ -122,6 +122,27 @@ definitions:
         type: boolean
       sub_transaction_id:
         type: integer
+      transaction:
+        $ref: '#/definitions/model.Transaction'
+      updated_at:
+        type: string
+    type: object
+  model.Transaction:
+    properties:
+      book_id:
+        type: string
+      created_at:
+        type: string
+      description:
+        type: string
+      occurred_at:
+        type: string
+      sub_transactions:
+        items:
+          $ref: '#/definitions/model.SubTransaction'
+        type: array
+      transaction_id:
+        type: integer
       updated_at:
         type: string
     type: object

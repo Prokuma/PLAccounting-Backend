@@ -70,7 +70,7 @@ func CreateTransaction(c *gin.Context) {
 	var transaction = model.Transaction{
 		BookId:          book.BookId,
 		Description:     createTransaction.Description,
-		OccuredAt:       createTransaction.OccuredAt,
+		OccurredAt:      createTransaction.OccuredAt,
 		SubTransactions: createTransaction.SubTransactions,
 	}
 
@@ -156,7 +156,7 @@ func UpdateTransaction(c *gin.Context) {
 		transaction.Description = *updateTransaction.Description
 	}
 	if updateTransaction.OccuredAt != nil {
-		transaction.OccuredAt = *updateTransaction.OccuredAt
+		transaction.OccurredAt = *updateTransaction.OccuredAt
 	}
 	if updateTransaction.SubTransactions != nil {
 		for idx := range *updateTransaction.SubTransactions {

@@ -15,13 +15,13 @@ var NoAuthorizationError = errors.New("No Authorization")
 
 func InitDB() {
 	// Load Environment Variables
-	host := os.Getenv("POSTGRESQL_HOST")
-	port := os.Getenv("POSTGRESQL_PORT")
-	user := os.Getenv("POSTGRESQL_USER")
-	password := os.Getenv("POSTGRESQL_PASSWORD")
-	dbname := os.Getenv("POSTGRESQL_DBNAME")
-	sslmode := os.Getenv("POSTGRESQL_SSLMODE")
-	timezone := os.Getenv("POSTGRESQL_TIMEZONE")
+	host := os.Getenv("POSTGRES_HOST")
+	port := os.Getenv("POSTGRES_PORT")
+	user := os.Getenv("POSTGRES_USER")
+	password := os.Getenv("POSTGRES_PASSWORD")
+	dbname := os.Getenv("POSTGRES_DB")
+	sslmode := os.Getenv("POSTGRES_SSLMODE")
+	timezone := os.Getenv("POSTGRES_TIMEZONE")
 
 	// DB Connection
 	dsn := fmt.Sprintf("host=%s user=%s password=%s dbname=%s port=%s sslmode=%s TimeZone=%s",
@@ -40,16 +40,6 @@ func InitDB() {
 		&model.Book{}, &model.AccountTitle{}, &model.BookAuthorization{},
 		&model.Transaction{}, &model.SubTransaction{},
 	)
-	/*
-		db.AutoMigrate(&model.Permit{})
-		db.AutoMigrate(&model.BookAuthorization{})
-		db.AutoMigrate(&model.Transaction{})
-		db.AutoMigrate(&model.SubTransaction{})
-		db.AutoMigrate(&model.Application{})
-		db.AutoMigrate(&model.User{})
-		db.AutoMigrate(&model.Book{})
-		db.AutoMigrate(&model.AccountTitle{})
-	*/
 
 	if err != nil {
 		panic(err)
