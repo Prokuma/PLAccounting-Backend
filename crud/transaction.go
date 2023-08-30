@@ -89,7 +89,8 @@ func GetBookPages(bookId string, dataPerPages int) int64 {
 
 func GetAllBooks(user *model.User) (*[]model.Book, error) {
 	var books []model.Book
-	err := DB.Model(&model.BookAuthorization{UserId: user.UserId}).Select("books.*").Joins("LEFT JOIN books ON book_authorizations.book_id = books.book_id").Find(&books).Error
+	subQuery := DB.Where(&model.BookAuthorization{UserId: user.UserId}).Select("book_id").Table("book_authorizations")
+	err := DB.Where("book_id = ", subQuery).Find(&books).Error
 
 	if err != nil {
 		fmt.Println("Books could not found: ", err)
