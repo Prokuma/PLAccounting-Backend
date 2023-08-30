@@ -181,7 +181,7 @@ func CreateBookAuthorization(authorization *model.BookAuthorization) error {
 
 func GetBookAuthorization(user *model.User, book *model.Book) (model.BookAuthorization, error) {
 	var bookAuthorization model.BookAuthorization
-	err := DB.Where(&model.BookAuthorization{UserId: *&user.UserId}).First(&bookAuthorization).Error
+	err := DB.Where(&model.BookAuthorization{UserId: user.UserId, BookId: book.BookId}).First(&bookAuthorization).Error
 
 	if err != nil {
 		fmt.Println("Book Authorization not found: ", err)
