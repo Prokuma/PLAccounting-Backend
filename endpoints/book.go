@@ -255,9 +255,10 @@ func DeleteBook(c *gin.Context) {
 }
 
 type CreateAccountTitleRequest struct {
-	Name   string `json:"name" binding:"required"`
-	Amount int64  `json:"amount"`
-	Type   uint   `json:"type"`
+	Name       string `json:"name" binding:"required"`
+	Amount     int64  `json:"amount"`
+	AmountBase int64  `json:"amount_base"`
+	Type       uint   `json:"type"`
 }
 
 // CreateAccountTitle godoc
@@ -308,10 +309,11 @@ func CreateAccountTitle(c *gin.Context) {
 	}
 
 	var accountTitle = model.AccountTitle{
-		BookId: book.BookId,
-		Name:   createAccountTitle.Name,
-		Amount: createAccountTitle.Amount,
-		Type:   createAccountTitle.Type,
+		BookId:     book.BookId,
+		Name:       createAccountTitle.Name,
+		Amount:     createAccountTitle.Amount,
+		AmountBase: createAccountTitle.AmountBase,
+		Type:       createAccountTitle.Type,
 	}
 
 	err = crud.CreateAccountTitle(&accountTitle)
@@ -434,9 +436,10 @@ func GetAllAccountTitles(c *gin.Context) {
 }
 
 type UpdateAccountTitleRequest struct {
-	Name   *string `json:"name"`
-	Amount *int64  `json:"amount"`
-	Type   *uint   `json:"type"`
+	Name       *string `json:"name"`
+	Amount     *int64  `json:"amount"`
+	AmountBase *int64  `json:"amount_base"`
+	Type       *uint   `json:"type"`
 }
 
 // UpdateAccountTitle godoc
@@ -506,6 +509,9 @@ func UpdateAccountTitle(c *gin.Context) {
 	}
 	if updateAccountTitle.Amount != nil {
 		accountTitle.Amount = *updateAccountTitle.Amount
+	}
+	if updateAccountTitle.AmountBase != nil {
+		accountTitle.AmountBase = *updateAccountTitle.AmountBase
 	}
 	if updateAccountTitle.Type != nil {
 		accountTitle.Type = *updateAccountTitle.Type
