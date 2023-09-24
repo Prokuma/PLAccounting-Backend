@@ -17,13 +17,13 @@ type Book struct {
 }
 
 type BookAuthorization struct {
-	BookId    string    `gorm:"primaryKey;not null"`
+	BookId    string    `gorm:"primaryKey;not null" json:"book_id"`
 	Book      *Book     `gorm:"foreignKey:BookId" json:"account_title"`
-	UserId    string    `gorm:"primaryKey;not null"`
+	UserId    string    `gorm:"primaryKey;not null" json:"user_id"`
 	User      *User     `gorm:"foreignKey:UserId" json:"user"`
-	Authority string    `gorm:"not null"`
-	CreatedAt time.Time `gorm:"index"`
-	UpdatedAt time.Time
+	Authority string    `gorm:"not null" json:"authority"`
+	CreatedAt time.Time `gorm:"index" json:"created_at"`
+	UpdatedAt time.Time `json:"updated_at"`
 }
 
 type AccountTitle struct {

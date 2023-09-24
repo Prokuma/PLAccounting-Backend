@@ -192,6 +192,18 @@ func GetBookAuthorization(user *model.User, book *model.Book) (model.BookAuthori
 	return bookAuthorization, nil
 }
 
+func GetBookAuthorizations(book *model.Book) (*[]model.BookAuthorization, error) {
+	var bookAuthorizations []model.BookAuthorization
+	err := DB.Where(&model.BookAuthorization{BookId: book.BookId}).Find(&bookAuthorizations).Error
+
+	if err != nil {
+		fmt.Println("Book Authorizations not found: ", err)
+		return nil, err
+	}
+
+	return &bookAuthorizations, nil
+}
+
 func UpdateBookAuthorization(authorization *model.BookAuthorization) error {
 	err := DB.Save(authorization).Error
 

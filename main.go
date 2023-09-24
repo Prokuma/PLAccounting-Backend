@@ -109,6 +109,9 @@ func main() {
 		v1.GET("/book/:bid", endpoint.GetBook)
 		v1.PATCH("/book/:bid", endpoint.UpdateBook)
 		v1.DELETE("/book/:bid", endpoint.DeleteBook)
+		v1.GET("/book/:bid/bookAuthorization", endpoint.GetBookAuthorizations)
+		v1.POST("/book/:bid/bookAuthorization", endpoint.CreateBookAuthorization)
+		v1.PATCH("/book/:bid/bookAuthorization/:uid", endpoint.UpdateBookAuthorization)
 
 		// Account Titles
 		v1.GET("/book/:bid/accountTitle", endpoint.GetAllAccountTitles)

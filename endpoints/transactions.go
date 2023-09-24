@@ -13,7 +13,7 @@ import (
 
 type CreateTransactionRequest struct {
 	Description     string                 `json:"description" binding:"required"`
-	OccuredAt       time.Time              `json:"occured_at" binding:"required"`
+	OccurredAt      time.Time              `json:"occurred_at" binding:"required"`
 	SubTransactions []model.SubTransaction `json:"sub_transactions" binding:"required"`
 }
 
@@ -70,7 +70,7 @@ func CreateTransaction(c *gin.Context) {
 	var transaction = model.Transaction{
 		BookId:          book.BookId,
 		Description:     createTransaction.Description,
-		OccurredAt:      createTransaction.OccuredAt,
+		OccurredAt:      createTransaction.OccurredAt,
 		SubTransactions: createTransaction.SubTransactions,
 	}
 
@@ -89,7 +89,7 @@ func CreateTransaction(c *gin.Context) {
 
 type UpdateTransactionRequest struct {
 	Description     *string                 `json:"description"`
-	OccuredAt       *time.Time              `json:"occured_at"`
+	OccurredAt      *time.Time              `json:"occurred_at"`
 	SubTransactions *[]model.SubTransaction `json:"sub_transactions"`
 }
 
@@ -155,8 +155,8 @@ func UpdateTransaction(c *gin.Context) {
 	if updateTransaction.Description != nil {
 		transaction.Description = *updateTransaction.Description
 	}
-	if updateTransaction.OccuredAt != nil {
-		transaction.OccurredAt = *updateTransaction.OccuredAt
+	if updateTransaction.OccurredAt != nil {
+		transaction.OccurredAt = *updateTransaction.OccurredAt
 	}
 	if updateTransaction.SubTransactions != nil {
 		for idx := range *updateTransaction.SubTransactions {

@@ -213,6 +213,7 @@ func GetUser(c *gin.Context) {
 
 	c.JSON(http.StatusOK, gin.H{
 		"status": 200,
+		"id":     user.UserId,
 		"email":  user.Email,
 		"name":   user.Name,
 	})
