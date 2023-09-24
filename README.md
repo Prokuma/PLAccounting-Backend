@@ -29,7 +29,7 @@ source .env.docker
 
 #### Dockerfileのビルド&起動
 ```shell
-docker-compose up -d
+docker-compose --env_file .env.docker up -d
 ``` 
 
 ### 手動構築

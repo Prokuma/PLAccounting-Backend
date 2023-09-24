@@ -89,7 +89,8 @@ func GetBookPages(bookId string, dataPerPages int) int64 {
 
 func GetAllBooks(user *model.User) (*[]model.Book, error) {
 	var books []model.Book
-	err := DB.Model(&model.BookAuthorization{UserId: user.UserId}).Select("books.*").Joins("LEFT JOIN books ON book_authorizations.book_id = books.book_id").Find(&books).Error
+	subQuery := DB.Select("book_id").Where(&model.BookAuthorization{UserId: user.UserId}).Table("book_authorizations")
+	err := DB.Group("book_id").Having("book_id IN (?)", subQuery).Find(&books).Error
 
 	if err != nil {
 		fmt.Println("Books could not found: ", err)
@@ -181,7 +182,7 @@ func CreateBookAuthorization(authorization *model.BookAuthorization) error {
 
 func GetBookAuthorization(user *model.User, book *model.Book) (model.BookAuthorization, error) {
 	var bookAuthorization model.BookAuthorization
-	err := DB.Where(&model.BookAuthorization{UserId: *&user.UserId}).First(&bookAuthorization).Error
+	err := DB.Where(&model.BookAuthorization{UserId: user.UserId, BookId: book.BookId}).First(&bookAuthorization).Error
 
 	if err != nil {
 		fmt.Println("Book Authorization not found: ", err)
@@ -189,6 +190,18 @@ func GetBookAuthorization(user *model.User, book *model.Book) (model.BookAuthori
 	}
 
 	return bookAuthorization, nil
+}
+
+func GetBookAuthorizations(book *model.Book) (*[]model.BookAuthorization, error) {
+	var bookAuthorizations []model.BookAuthorization
+	err := DB.Where(&model.BookAuthorization{BookId: book.BookId}).Find(&bookAuthorizations).Error
+
+	if err != nil {
+		fmt.Println("Book Authorizations not found: ", err)
+		return nil, err
+	}
+
+	return &bookAuthorizations, nil
 }
 
 func UpdateBookAuthorization(authorization *model.BookAuthorization) error {

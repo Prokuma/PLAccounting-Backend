@@ -254,10 +254,186 @@ func DeleteBook(c *gin.Context) {
 	})
 }
 
+type CreateBookAuthorizationRequest struct {
+	UserId    string `json:"user_id" binding:"required"`
+	Authority string `json:"authority" binding:"required"`
+}
+
+// CreateBookAuthorization godoc
+// @Summary Create Book Authorization
+// @Tags Book Authorization
+// @Description Create Book Authorization
+// @Accept  json
+// @Produce  json
+// @Param bid path string true "Book ID"
+// @Success 200 {string} string	"Create Book Authorization"
+// @Failure 400 {string} string	"Request is failed"
+// @Router /book/{bid}/bookAuthorization [post]
+func CreateBookAuthorization(c *gin.Context) {
+	user, err := getUserIdFromJWT(c)
+	if err != nil {
+		c.Abort()
+		return
+	}
+
+	book, err := crud.GetBook(c.Param("bid"))
+	if err != nil {
+		c.String(http.StatusUnauthorized, "Book was not found")
+		c.Abort()
+		return
+	}
+
+	bookAuthorization, err := crud.GetBookAuthorization(&user, &book)
+	if err != nil {
+		c.String(http.StatusUnauthorized, "You are not authorized")
+		c.Abort()
+		return
+	}
+	if strings.Index(bookAuthorization.Authority, "admin") == -1 {
+		c.String(http.StatusUnauthorized, "You are not authorized")
+		c.Abort()
+		return
+	}
+
+	var createBookAuthorization CreateBookAuthorizationRequest
+	err = c.BindJSON(&createBookAuthorization)
+
+	if err != nil {
+		c.String(http.StatusBadRequest, "Infection Informations")
+		c.Abort()
+		return
+	}
+
+	var inputBookAuthorization = model.BookAuthorization{
+		BookId:    book.BookId,
+		UserId:    createBookAuthorization.UserId,
+		Authority: createBookAuthorization.Authority,
+	}
+	err = crud.CreateBookAuthorization(&inputBookAuthorization)
+	if err != nil {
+		c.String(http.StatusInternalServerError, "Book Authorization could not created")
+		c.Abort()
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"book_authorization": inputBookAuthorization,
+		"message":            "Book Authorization was created",
+	})
+}
+
+type UpdateBookAuthorizationRequest struct {
+	UserId    string `json:"user_id" binding:"required"`
+	Authority string `json:"authority" binding:"required"`
+}
+
+// UpdateBookAuthorization godoc
+// @Summary Update Book Authorization
+// @Tags Book Authorization
+// @Description Update Book Authorization
+// @Accept  json
+// @Produce  json
+// @Param bid path string true "Book ID"
+// @Param uid path string true "User ID"
+// @Success 200 {string} string	"Update Book Authorization"
+// @Failure 400 {string} string	"Request is failed"
+// @Router /book/{bid}/bookAuthorization/{uid} [patch]
+func UpdateBookAuthorization(c *gin.Context) {
+	user, err := getUserIdFromJWT(c)
+	if err != nil {
+		c.Abort()
+		return
+	}
+
+	book, err := crud.GetBook(c.Param("bid"))
+	if err != nil {
+		c.String(http.StatusUnauthorized, "Book was not found")
+		c.Abort()
+		return
+	}
+
+	bookAuthorization, err := crud.GetBookAuthorization(&user, &book)
+	if err != nil {
+		c.String(http.StatusUnauthorized, "You are not authorized")
+		c.Abort()
+		return
+	}
+	if strings.Index(bookAuthorization.Authority, "admin") == -1 {
+		c.String(http.StatusUnauthorized, "You are not authorized")
+		c.Abort()
+		return
+	}
+
+	var updateBookAuthorization UpdateBookAuthorizationRequest
+	err = c.BindJSON(&updateBookAuthorization)
+	if err != nil {
+		c.String(http.StatusBadRequest, "Infection Informations")
+		c.Abort()
+		return
+	}
+
+	var inputBookAuthorization = model.BookAuthorization{
+		BookId:    book.BookId,
+		UserId:    updateBookAuthorization.UserId,
+		Authority: updateBookAuthorization.Authority,
+	}
+
+	err = crud.UpdateBookAuthorization(&inputBookAuthorization)
+	if err != nil {
+		c.String(http.StatusInternalServerError, "Book Authorization could not updated")
+		c.Abort()
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"book_authorization": inputBookAuthorization,
+		"message":            "Book Authorization was updated",
+	})
+}
+
+func GetBookAuthorizations(c *gin.Context) {
+	user, err := getUserIdFromJWT(c)
+	if err != nil {
+		c.Abort()
+		return
+	}
+
+	book, err := crud.GetBook(c.Param("bid"))
+	if err != nil {
+		c.String(http.StatusUnauthorized, "Book was not found")
+		c.Abort()
+		return
+	}
+	bookAuthorization, err := crud.GetBookAuthorization(&user, &book)
+	if err != nil {
+		c.String(http.StatusUnauthorized, "You are not authorized")
+		c.Abort()
+		return
+	}
+	if strings.Index(bookAuthorization.Authority, "admin") == -1 {
+		c.String(http.StatusUnauthorized, "You are not authorized")
+		c.Abort()
+		return
+	}
+
+	bookAuthorizations, err := crud.GetBookAuthorizations(&book)
+	if err != nil {
+		c.String(http.StatusInternalServerError, "Book Authorization could not updated")
+		c.Abort()
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"book_authorizations": bookAuthorizations,
+		"message":             "Book Authorization was updated",
+	})
+}
+
 type CreateAccountTitleRequest struct {
-	Name   string `json:"name" binding:"required"`
-	Amount int64  `json:"amount"`
-	Type   uint   `json:"type"`
+	Name       string `json:"name" binding:"required"`
+	Amount     int64  `json:"amount"`
+	AmountBase int64  `json:"amount_base"`
+	Type       uint   `json:"type"`
 }
 
 // CreateAccountTitle godoc
@@ -308,10 +484,11 @@ func CreateAccountTitle(c *gin.Context) {
 	}
 
 	var accountTitle = model.AccountTitle{
-		BookId: book.BookId,
-		Name:   createAccountTitle.Name,
-		Amount: createAccountTitle.Amount,
-		Type:   createAccountTitle.Type,
+		BookId:     book.BookId,
+		Name:       createAccountTitle.Name,
+		Amount:     createAccountTitle.Amount,
+		AmountBase: createAccountTitle.AmountBase,
+		Type:       createAccountTitle.Type,
 	}
 
 	err = crud.CreateAccountTitle(&accountTitle)
@@ -434,9 +611,10 @@ func GetAllAccountTitles(c *gin.Context) {
 }
 
 type UpdateAccountTitleRequest struct {
-	Name   *string `json:"name"`
-	Amount *int64  `json:"amount"`
-	Type   *uint   `json:"type"`
+	Name       *string `json:"name"`
+	Amount     *int64  `json:"amount"`
+	AmountBase *int64  `json:"amount_base"`
+	Type       *uint   `json:"type"`
 }
 
 // UpdateAccountTitle godoc
@@ -506,6 +684,9 @@ func UpdateAccountTitle(c *gin.Context) {
 	}
 	if updateAccountTitle.Amount != nil {
 		accountTitle.Amount = *updateAccountTitle.Amount
+	}
+	if updateAccountTitle.AmountBase != nil {
+		accountTitle.AmountBase = *updateAccountTitle.AmountBase
 	}
 	if updateAccountTitle.Type != nil {
 		accountTitle.Type = *updateAccountTitle.Type
