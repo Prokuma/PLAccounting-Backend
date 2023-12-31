@@ -105,6 +105,50 @@ func GetBook(c *gin.Context) {
 	})
 }
 
+// CreateBookFromOldBook godoc
+// @Summary Create Book From Old Book
+// @Tags Book
+// @Description Create Book From Old Book
+// @Accept  json
+// @Produce  json
+// @Param bid path string true "Book ID"
+// @Success 200 {string} string	"Create Book From Old Book"
+// @Failure 400 {string} string	"Request is failed"
+// @Router /migrate/{bid} [post]
+func CreateBookFromOldBook(c *gin.Context) {
+	user, err := getUserIdFromJWT(c)
+	if err != nil {
+		c.Abort()
+		return
+	}
+
+	var createBook CreateBookRequest
+	err = c.BindJSON(&createBook)
+	if err != nil {
+		c.String(http.StatusBadRequest, "Infection Informations")
+		c.Abort()
+		return
+	}
+
+	oldBook, err := crud.GetBook(c.Param("bid"))
+	if err != nil {
+		c.String(http.StatusNotFound, "Book was not found")
+		c.Abort()
+		return
+	}
+
+	err = crud.CreateBookAndAccountTitleFromBook(createBook.Year, createBook.Name, &user, &oldBook)
+	if err != nil {
+		c.String(http.StatusInternalServerError, "Book could not created")
+		c.Abort()
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"message": "Book was created",
+	})
+}
+
 // GetAllBooks godoc
 // @Summary Get All Books
 // @Tags Book

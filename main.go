@@ -112,6 +112,7 @@ func main() {
 		v1.GET("/book/:bid/bookAuthorization", endpoint.GetBookAuthorizations)
 		v1.POST("/book/:bid/bookAuthorization", endpoint.CreateBookAuthorization)
 		v1.PATCH("/book/:bid/bookAuthorization/:uid", endpoint.UpdateBookAuthorization)
+		v1.POST("/migrate/:bid", endpoint.CreateBookFromOldBook)
 
 		// Account Titles
 		v1.GET("/book/:bid/accountTitle", endpoint.GetAllAccountTitles)
